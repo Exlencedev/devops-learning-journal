@@ -1,91 +1,81 @@
-# 🐧 Linux Temelleri: Sistem Kimliği & Metin İşleme
+# 🖥️ VirtualBox Üzerinde Rocky Linux Kurulumu
 
-Bu belge, temel sistem kimliği komutlarını ve pipe (`|`) kullanarak metin işleme (grep, cut, awk) pratiğini kapsıyor.
+Bu belge, sıfırdan VirtualBox kurup, üzerine Rocky Linux 10.2 kurma sürecini kapsıyor. Orijinal müfredatta bu adım Vagrant ile otomatikleştiriliyor (bkz. 02-Vagrant-Automation), ancak bu süreci manuel yaparak sanal makine kurulumunun her adımını birebir görmeyi tercih ettim.
 
 ---
 
-## 1. Sistem Kimliği Komutları
+## 1. VirtualBox Kurulumu
+
+Resmi siteden (`virtualbox.org/wiki/Downloads`) işletim sistemine uygun sürüm indirildi.
+
+- **Sürüm:** VirtualBox 7.2.14
+
+---
+
+## 2. Rocky Linux ISO İndirme
+
+`rockylinux.org/download` üzerinden minimal ISO indirildi.
+
+- **İndirilen sürüm:** Rocky-10.2-x86_64-minimal.iso
+- **Not:** Minimal ISO tercih edildi çünkü sadece komut satırı içeriyor (GUI yok), staj müfredatındaki kullanım da bu şekilde.
+
+---
+
+## 3. Sanal Makine Oluşturma
+
+VirtualBox'ta "Yeni Sanal Makine" sihirbazı ile aşağıdaki ayarlarla VM oluşturuldu:
+
+| Ayar | Değer |
+|------|-------|
+| VM Adı | Rocky9-Test |
+| ISO Kalıbı | Rocky-10.2-x86_64-minimal.iso |
+| İş Dağıtımı | Red Hat (64-bit) |
+| Ana Bellek (RAM) | 4096 MB |
+| İşlemci Sayısı | 4 |
+| Disk Boyutu | 20 GB |
+| EFI | Kapalı |
+
+### 🐛 Küçük Not
+
+İndirme sayfasından otomatik olarak Rocky Linux **10** indi (repo müfredatında 9.8 kullanılmış). Aradaki fark, `dnf`, `systemctl`, `firewalld` gibi temel komutlar açısından pratik olarak önemsiz olduğu için Rocky Linux 10 ile devam edildi.
+
+---
+
+## 4. Kurulum Ekranı (Anaconda Installer)
+
+Kurulum özetinde 3 zorunlu adım tamamlandı:
+
+1. **Kurulum Hedefi** → Disk otomatik partition'landı
+2. **Kök Hesabı (root)** → Şifre belirlendi
+3. **Kullanıcı Oluşturma** → `ege` kullanıcısı oluşturuldu, yönetici (sudo) yetkisi verildi
+
+Kurulum tamamlandıktan sonra `sudo reboot` ile sistem yeniden başlatıldı (yeni kurulan kernel'in aktif olması için).
+
+---
+
+## 5. İlk Giriş ve Sistem Güncellemesi
 
 ```bash
-hostname
-hostnamectl
-hostname -I
-uname -a
+sudo dnf update -y
 ```
 
-### 🔍 Gözlemler
+Kernel dahil tüm sistem paketleri güncellendi. Kernel güncellemesi olduğu için tekrar `sudo reboot` ile yeniden başlatıldı.
 
-- `hostname` sadece düz makine adını (`localhost`) gösterirken, `hostnamectl` çok daha fazla detay verir: OS, kernel, mimari, sanallaştırma tipi, donanım bilgisi.
-- `hostnamectl` çıktısında `Static hostname: (unset)` görüldü — sisteme kalıcı bir isim atanmamış, sadece geçici (`Transient hostname: localhost`) bir isim var.
-- `hostname -I` iki IP adresi döndürdü: `10.0.2.15` (IPv4) ve `fd17:625c:f037:2:a00:27ff:feb6:f012` (IPv6).
-- `uname -a` çıktısında `localhost.localdomain` FQDN'i görüldü — Rocky Linux'ta varsayılan davranış.
+### 🔍 Gözlem
+
+`hostnamectl` çıktısında `Virtualization: oracle` ve `Chassis: vm` bilgileri, sistemin VirtualBox üzerinde çalıştığını doğru şekilde tespit ettiğini gösterdi. `Hardware Vendor: innotek GmbH` de VirtualBox'ın sanal donanım imzası.
 
 ---
 
-## 2. Metin İşleme Pipeline'ı: Dağıtım Adını Çıkarma
+## 📊 Kurulum Özeti Referans Tablosu
 
-Amaç: `/etc/os-release` dosyasından, sadece dağıtım adını temiz bir şekilde çıkarmak.
-
-```bash
-cat /etc/os-release | grep "PRETTY_NAME" | cut -d '=' -f 2 | tr -d '"'
-```
-
-**Çıktı:**
-```
-Rocky Linux 10.2 (Red Quartz)
-```
-
-### Pipeline Adım Adım
-
-1. **`cat /etc/os-release`** — dosyanın tüm ham içeriğini okur.
-2. **`grep "PRETTY_NAME"`** — sadece bu satırı filtreler: `PRETTY_NAME="Rocky Linux 10.2 (Red Quartz)"`
-3. **`cut -d '=' -f 2`** — `=` işaretine göre böler, ikinci parçayı alır: `"Rocky Linux 10.2 (Red Quartz)"`
-4. **`tr -d '"'`** — tırnak işaretlerini siler, nihai temiz sonucu verir.
-
-### 🐛 Hata & Çözüm
-
-İlk denemede `cat` yerine yanlışlıkla `car` yazıldı:
-```
-bash: car: komut yok
-```
-Sebep basit bir yazım hatası (harf kayması). Linux komutları harf hassasiyetine çok duyarlı — tek harflik hata bile "command not found" hatasına yol açar. Doğru yazımla (`cat`) tekrar denendi ve sorun çözüldü.
+| Adım | Amaç |
+|------|------|
+| ISO indirme | Kurulacak işletim sisteminin kalıbını edinmek |
+| VM oluşturma | Sanal donanımı (RAM/CPU/Disk) tanımlamak |
+| Anaconda kurulumu | OS'i diske kurmak, kullanıcı/root belirlemek |
+| `dnf update -y` | Sistemi güncel paket ve kernel ile senkronize etmek |
 
 ---
 
-## 3. Metin İşleme Pipeline'ı: Disk Kullanımını Formatlama
-
-```bash
-df -h / | awk 'NR==2 {print "Total: " $2 " | Used: " $3 " | Free: " $4}'
-```
-
-**Çıktı:**
-```
-Total: 16G | Used: 1,5G | Free 15G
-```
-
-### Açıklama
-
-`awk 'NR==2 {...}'` ifadesi, `df -h /` çıktısının **2. satırını** (başlık satırı değil, gerçek veri satırı) hedef alır ve `$2`, `$3`, `$4` sütunlarını (Boyut, Dolu, Boş) özel bir formatta yeniden yazdırır.
-
-### 🐛 Hata & Çözüm
-
-İlk denemede pipe (`|`) karakteri Türkçe klavye düzeninde doğru basılamadı, komut hatalı çalıştı (`awk: Böyle bir dosya ya da dizin yok`). Türkçe Q klavyede `|` karakteri **AltGr + <** ile yazılır. Doğru tuş kombinasyonuyla tekrar denendiğinde komut başarıyla çalıştı.
-
----
-
-## 📊 Komut Referansı
-
-| Komut | Amacı | Örnek |
-|-------|-------|-------|
-| **`hostname`** | Makine adını gösterir | `hostname` |
-| **`hostnamectl`** | Detaylı sistem/OS/kernel bilgisi gösterir | `hostnamectl` |
-| **`uname -a`** | Kernel ve mimari bilgisi gösterir | `uname -a` |
-| **`grep`** | Metinde satır bazlı arama/filtreleme yapar | `grep "PRETTY_NAME" file` |
-| **`cut -d -f`** | Belirteç bazlı sütun ayıklama yapar | `cut -d '=' -f 2` |
-| **`awk`** | Satır/sütun bazlı gelişmiş metin işleme yapar | `awk '{print $1}'` |
-| **`tr -d`** | Belirtilen karakterleri siler | `tr -d '"'` |
-| **`\|`** | Bir komutun çıktısını diğerine "besler" (pipe) | `cmd1 \| cmd2` |
-
----
-
-ℹ️ _Tüm komutlar yerel Rocky Linux VM'inde test edilmiştir._
+ℹ️ _Tüm adımlar yerel VirtualBox ortamında test edilmiştir._
