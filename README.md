@@ -8,7 +8,9 @@ VirtualBox üzerinde Rocky Linux 10.2 kurdum ve sistemi güncel tuttum. Linux te
 
 Vagrant fazını, VM'i zaten manuel kurduğum için atladım (bkz. aşağıdaki not).
 
-Sırada kullanıcı/sudo yetki yönetimi (Least Privilege Prensibi) var.
+Kullanıcı/sudo yetki yönetiminde, `visudo` ile kısıtlı bir kullanıcıya sadece nginx komutlarına özel yetki tanımladım ve "En Düşük Yetki Prensibi"ni gerçek testlerle doğruladım (izinli komut sorunsuz çalıştı, izinsiz komut reddedildi).
+
+Sırada dosya/dizin izinleri (`chmod`, `chown`, özel bitler) var.
 
 ---
 
@@ -18,6 +20,7 @@ Sırada kullanıcı/sudo yetki yönetimi (Least Privilege Prensibi) var.
 - [01-Linux-Basics](./01-Linux-Basics/): Sistem kimliği komutları (`hostname`, `hostnamectl`) ve pipe tabanlı metin işleme (`grep`, `cut`, `awk`, `tr`).
 - [02-Vagrant-Automation](./02-Vagrant-Automation/): Atlandı — VM zaten manuel kurulduğu için. Kavramsal özet içeriyor.
 - [03-File-System-Management](./03-File-System-Management/): `dd` ile test dosyası oluşturma, XFS speculative preallocation keşfi, ve en büyük dosyaları bulma pipeline'ı.
+- [04-User-Privilege-Management](./04-User-Privilege-Management/): `visudo` ile En Düşük Yetki Prensibi — kısıtlı bir kullanıcıya sadece nginx komutlarına özel, şifresiz sudo yetkisi tanımlama.
 
 ---
 
@@ -48,6 +51,18 @@ _Pipe (`|`) karakterini Türkçe klavyede yazmakta zorlandım (AltGr + < gerekiy
 - **Kilometre Taşları & Çıktılar:**
   - 📜 Linux Temelleri Notları: [01-Linux-Basics](./01-Linux-Basics/readme.md)
   - 📁 Dosya Sistemi Notları: [03-File-System-Management](./03-File-System-Management/readme.md)
+
+### 🔹 Gün 3 | Kullanıcı & Yetki Yönetimi
+
+_`visudo` içinde vi editörüyle yazarken iki yazım hatası yaptım (`/usr/bsn/` ve `ngingx`), bunu gözle değil `sudo -l -U devopstester` doğrulama komutuyla tespit ettim. Ayrıca `su` ile `sudo su` arasındaki şifre farkını canlı olarak deneyimledim._
+
+- **Görevler & Hedefler:**
+  - nginx kuruldu ve servis durumu doğrulandı.
+  - Kısıtlı bir kullanıcı (`devopstester`) oluşturuldu.
+  - `visudo` ile sadece nginx komutlarına özel, şifresiz (`NOPASSWD`) sudo yetkisi tanımlandı.
+  - İzinli komut (`restart nginx`) ve izinsiz komut (`dnf update`) ile En Düşük Yetki Prensibi test edildi.
+- **Kilometre Taşları & Çıktılar:**
+  - 🔐 Yetki Yönetimi Notları: [04-User-Privilege-Management](./04-User-Privilege-Management/readme.md)
 
 ---
 
