@@ -6,11 +6,13 @@ Bu repo, Linux ve DevOps temellerini öğrenirken tuttuğum günlük notları be
 
 VirtualBox üzerinde Rocky Linux 10.2 kurdum ve sistemi güncel tuttum. Linux temellerinde `hostname`/`hostnamectl` ile sistem kimliğini, `grep`/`cut`/`awk`/`tr` ile pipe tabanlı metin işlemeyi öğrendim. Dosya sistemi yönetiminde `dd` ile test dosyası oluşturdum, bu sırada XFS'in "speculative preallocation" davranışını keşfettim ve `stat` ile doğruladım — ardından `find`/`sort`/`head` pipeline'ı ile en büyük dosyaları listelemeyi öğrendim.
 
-Vagrant fazını, VM'i zaten manuel kurduğum için atladım (bkz. aşağıdaki not).
+Vagrant fazında, Windows host'a Vagrant kurup VirtualBox provider'ıyla `vagrant up` ile otomatik bir Rocky Linux 9.3 VM'i ayağa kaldırdım — manuel kurulumla aynı sonuca çok daha hızlı ulaştım.
 
 Kullanıcı/sudo yetki yönetiminde, `visudo` ile kısıtlı bir kullanıcıya sadece nginx komutlarına özel yetki tanımladım ve "En Düşük Yetki Prensibi"ni gerçek testlerle doğruladım (izinli komut sorunsuz çalıştı, izinsiz komut reddedildi).
 
-Sırada dosya/dizin izinleri (`chmod`, `chown`, özel bitler) var.
+Linux izinlerinde `chmod` sayısal sistemini, sticky bit ile paylaşımlı dizin korumasını (2 kullanıcıyla gerçek test), `chown`/`chgrp` ile sahiplik değişimini, ve `umask` matematiğini öğrendim.
+
+Sırada süreç yönetimi (process management) var.
 
 ---
 
@@ -18,9 +20,10 @@ Sırada dosya/dizin izinleri (`chmod`, `chown`, özel bitler) var.
 
 - [00-VM-Setup](./00-VM-Setup/): VirtualBox kurulumu ve Rocky Linux 10.2'nin ISO'dan manuel kurulumu.
 - [01-Linux-Basics](./01-Linux-Basics/): Sistem kimliği komutları (`hostname`, `hostnamectl`) ve pipe tabanlı metin işleme (`grep`, `cut`, `awk`, `tr`).
-- [02-Vagrant-Automation](./02-Vagrant-Automation/): Atlandı — VM zaten manuel kurulduğu için. Kavramsal özet içeriyor.
+- [02-Vagrant-Automation](./02-Vagrant-Automation/): Windows host'a Vagrant kurulumu, VirtualBox provider ile otomatik VM oluşturma (`vagrant up`, `vagrant ssh`).
 - [03-File-System-Management](./03-File-System-Management/): `dd` ile test dosyası oluşturma, XFS speculative preallocation keşfi, ve en büyük dosyaları bulma pipeline'ı.
 - [04-User-Privilege-Management](./04-User-Privilege-Management/): `visudo` ile En Düşük Yetki Prensibi — kısıtlı bir kullanıcıya sadece nginx komutlarına özel, şifresiz sudo yetkisi tanımlama.
+- [05-Linux-Permissions](./05-Linux-Permissions/): `chmod` sayısal sistemi, sticky bit ile paylaşımlı dizin koruması, `chown`/`chgrp`, `umask` matematiği.
 
 ---
 
@@ -63,6 +66,20 @@ _`visudo` içinde vi editörüyle yazarken iki yazım hatası yaptım (`/usr/bsn
   - İzinli komut (`restart nginx`) ve izinsiz komut (`dnf update`) ile En Düşük Yetki Prensibi test edildi.
 - **Kilometre Taşları & Çıktılar:**
   - 🔐 Yetki Yönetimi Notları: [04-User-Privilege-Management](./04-User-Privilege-Management/readme.md)
+
+### 🔹 Gün 4 | Vagrant Otomasyonu & Linux İzinleri
+
+_Vagrant'ı önce yanlışlıkla VM'in içine kurmaya çalıştım, sonra bunun host makinede (Windows) olması gerektiğini fark ettim — VirtualBox'ı dışarıdan yönetmesi gerektiği için mantıklı geldi. İzinler fazında ise sticky bit'i gerçek iki kullanıcıyla (ege ve devopstester) test edip, `devopstester`'ın başkasının dosyasını gerçekten silemediğini kanıtladım._
+
+- **Görevler & Hedefler:**
+  - Windows host'a Vagrant 2.4.9 kuruldu, VirtualBox provider ile `generic/rocky9` box'ı ayağa kaldırıldı.
+  - `chmod` sayısal sistemi (750) test edildi.
+  - `/tmp/test` üzerinde sticky bit uygulanıp, 2 farklı kullanıcıyla gerçek silme testi yapıldı.
+  - `chown`/`chgrp` ile sahiplik ve grup ayrı ayrı değiştirildi.
+  - `umask` matematiği hem varsayılan (022) hem sıkılaştırılmış (077) değerle doğrulandı.
+- **Kilometre Taşları & Çıktılar:**
+  - 🤖 Vagrant Notları: [02-Vagrant-Automation](./02-Vagrant-Automation/readme.md)
+  - 🔑 İzinler Notları: [05-Linux-Permissions](./05-Linux-Permissions/readme.md)
 
 ---
 
