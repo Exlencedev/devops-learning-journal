@@ -12,7 +12,9 @@ Kullanıcı/sudo yetki yönetiminde, `visudo` ile kısıtlı bir kullanıcıya s
 
 Linux izinlerinde `chmod` sayısal sistemini, sticky bit ile paylaşımlı dizin korumasını (2 kullanıcıyla gerçek test), `chown`/`chgrp` ile sahiplik değişimini, ve `umask` matematiğini öğrendim.
 
-Sırada süreç yönetimi (process management) var.
+Süreç yönetiminde `top` ile CPU kullanımını izlerken, `dd` testinin gerçekten VM'i kilitlemesiyle bir kernel "soft lockup" krizi yaşadım ve VM'i güvenli şekilde kurtardım — ardından `kill`/`nice`/`renice` ile süreçleri kontrollü şekilde sonlandırıp önceliklendirmeyi öğrendim.
+
+Sırada servis yönetimi (systemd) var.
 
 ---
 
@@ -24,6 +26,7 @@ Sırada süreç yönetimi (process management) var.
 - [03-File-System-Management](./03-File-System-Management/): `dd` ile test dosyası oluşturma, XFS speculative preallocation keşfi, ve en büyük dosyaları bulma pipeline'ı.
 - [04-User-Privilege-Management](./04-User-Privilege-Management/): `visudo` ile En Düşük Yetki Prensibi — kısıtlı bir kullanıcıya sadece nginx komutlarına özel, şifresiz sudo yetkisi tanımlama.
 - [05-Linux-Permissions](./05-Linux-Permissions/): `chmod` sayısal sistemi, sticky bit ile paylaşımlı dizin koruması, `chown`/`chgrp`, `umask` matematiği.
+- [06-Linux-Process-Management](./06-Linux-Process-Management/): `top` ile süreç izleme, gerçek bir kernel "soft lockup" krizi ve çözümü, `kill` sinyalleri, `nice`/`renice` ile önceliklendirme.
 
 ---
 
@@ -80,6 +83,18 @@ _Vagrant'ı önce yanlışlıkla VM'in içine kurmaya çalıştım, sonra bunun 
 - **Kilometre Taşları & Çıktılar:**
   - 🤖 Vagrant Notları: [02-Vagrant-Automation](./02-Vagrant-Automation/readme.md)
   - 🔑 İzinler Notları: [05-Linux-Permissions](./05-Linux-Permissions/readme.md)
+
+### 🔹 Gün 5 | Süreç Yönetimi (Kriz Anı Dahil)
+
+_`dd if=/dev/zero of=/dev/null &` ile başlattığım CPU testini `top` ile uzun süre izlerken VM tamamen tepkisiz kaldı — ekranda `kernel: watchdog: BUG: soft lockup - CPU#3 stuck for 30s!` uyarısı belirdi. VM'i Power Off ile kurtarıp, testi bir daha bu sefer saniyeler içinde başlatıp-sonlandırarak kontrollü şekilde tekrarladım._
+
+- **Görevler & Hedefler:**
+  - `top` ile gerçek zamanlı CPU/süreç izleme yapıldı.
+  - Gerçek bir kernel soft lockup krizi yaşandı ve VM güvenli şekilde kurtarıldı.
+  - `pidof` ile PID alma, `kill -9` ile hızlı ve kontrollü sonlandırma yapıldı.
+  - `nice -n 19` ile düşük öncelikli süreç başlatıldı, `renice` ile çalışırken önceliği canlı değiştirildi (19 → 5).
+- **Kilometre Taşları & Çıktılar:**
+  - ⚙️ Süreç Yönetimi Notları: [06-Linux-Process-Management](./06-Linux-Process-Management/readme.md)
 
 ---
 
