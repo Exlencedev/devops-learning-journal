@@ -12,9 +12,11 @@ Kullanıcı/sudo yetki yönetiminde, `visudo` ile kısıtlı bir kullanıcıya s
 
 Linux izinlerinde `chmod` sayısal sistemini, sticky bit ile paylaşımlı dizin korumasını (2 kullanıcıyla gerçek test), `chown`/`chgrp` ile sahiplik değişimini, ve `umask` matematiğini öğrendim.
 
-Süreç yönetiminde `top` ile CPU kullanımını izlerken, `dd` testinin gerçekten VM'i kilitlemesiyle bir kernel "soft lockup" krizi yaşadım ve VM'i güvenli şekilde kurtardım — ardından `kill`/`nice`/`renice` ile süreçleri kontrollü şekilde sonlandırıp önceliklendirmeyi öğrendim.
+İşlem yönetiminde `top` ile CPU kullanımını izlerken, `dd` testinin gerçekten VM'i kilitlemesiyle bir kernel "soft lockup" krizi yaşadım ve VM'i güvenli şekilde kurtardım — ardından `kill`/`nice`/`renice` ile işlemleri kontrollü şekilde sonlandırıp önceliklendirmeyi öğrendim.
 
-Sırada servis yönetimi (systemd) var.
+Servis yönetiminde `enable` ile `start`'ın bağımsız ayarlar olduğunu, `reload` ile `restart` arasındaki farkı `journalctl` log çıktısında somut olarak gördüm.
+
+Sırada log analizi (Log Analysis) var.
 
 ---
 
@@ -26,7 +28,8 @@ Sırada servis yönetimi (systemd) var.
 - [03-File-System-Management](./03-File-System-Management/): `dd` ile test dosyası oluşturma, XFS speculative preallocation keşfi, ve en büyük dosyaları bulma pipeline'ı.
 - [04-User-Privilege-Management](./04-User-Privilege-Management/): `visudo` ile En Düşük Yetki Prensibi — kısıtlı bir kullanıcıya sadece nginx komutlarına özel, şifresiz sudo yetkisi tanımlama.
 - [05-Linux-Permissions](./05-Linux-Permissions/): `chmod` sayısal sistemi, sticky bit ile paylaşımlı dizin koruması, `chown`/`chgrp`, `umask` matematiği.
-- [06-Linux-Process-Management](./06-Linux-Process-Management/): `top` ile süreç izleme, gerçek bir kernel "soft lockup" krizi ve çözümü, `kill` sinyalleri, `nice`/`renice` ile önceliklendirme.
+- [06-Linux-Process-Management](./06-Linux-Process-Management/): `top` ile işlem izleme, gerçek bir kernel "soft lockup" krizi ve çözümü, `kill` sinyalleri, `nice`/`renice` ile önceliklendirme.
+- [07-Linux-Service-Management](./07-Linux-Service-Management/): `systemd` ile servis yönetimi (`enable`/`start`/`reload`/`restart`), `journalctl` ile log filtreleme.
 
 ---
 
@@ -84,17 +87,28 @@ _Vagrant'ı önce yanlışlıkla VM'in içine kurmaya çalıştım, sonra bunun 
   - 🤖 Vagrant Notları: [02-Vagrant-Automation](./02-Vagrant-Automation/readme.md)
   - 🔑 İzinler Notları: [05-Linux-Permissions](./05-Linux-Permissions/readme.md)
 
-### 🔹 Gün 5 | Süreç Yönetimi (Kriz Anı Dahil)
+### 🔹 Gün 5 | İşlem Yönetimi (Kriz Anı Dahil)
 
 _`dd if=/dev/zero of=/dev/null &` ile başlattığım CPU testini `top` ile uzun süre izlerken VM tamamen tepkisiz kaldı — ekranda `kernel: watchdog: BUG: soft lockup - CPU#3 stuck for 30s!` uyarısı belirdi. VM'i Power Off ile kurtarıp, testi bir daha bu sefer saniyeler içinde başlatıp-sonlandırarak kontrollü şekilde tekrarladım._
 
 - **Görevler & Hedefler:**
-  - `top` ile gerçek zamanlı CPU/süreç izleme yapıldı.
+  - `top` ile gerçek zamanlı CPU/işlem izleme yapıldı.
   - Gerçek bir kernel soft lockup krizi yaşandı ve VM güvenli şekilde kurtarıldı.
   - `pidof` ile PID alma, `kill -9` ile hızlı ve kontrollü sonlandırma yapıldı.
-  - `nice -n 19` ile düşük öncelikli süreç başlatıldı, `renice` ile çalışırken önceliği canlı değiştirildi (19 → 5).
+  - `nice -n 19` ile düşük öncelikli işlem başlatıldı, `renice` ile çalışırken önceliği canlı değiştirildi (19 → 5).
 - **Kilometre Taşları & Çıktılar:**
-  - ⚙️ Süreç Yönetimi Notları: [06-Linux-Process-Management](./06-Linux-Process-Management/readme.md)
+  - ⚙️ İşlem Yönetimi Notları: [06-Linux-Process-Management](./06-Linux-Process-Management/readme.md)
+
+### 🔹 Gün 6 | Servis & Log Yönetimi
+
+_`systemctl enable nginx` yazarken yine bir yazım hatası yaptım (`nignx`), hata mesajının netliği sayesinde hemen fark edip düzelttim. `reload` ile `restart` arasındaki teorik farkı, `journalctl` log çıktısında (Reloading/Reloaded vs Stopping/Stopped/Starting/Started) somut olarak gördüm._
+
+- **Görevler & Hedefler:**
+  - nginx servisi `enable` ile kalıcı hale getirildi, `start` ile çalıştırıldı.
+  - `reload` ve `restart` komutları test edildi.
+  - `journalctl -u`, `-p err`, `--since` filtreleriyle log analizi yapıldı.
+- **Kilometre Taşları & Çıktılar:**
+  - 🏗️ Servis Yönetimi Notları: [07-Linux-Service-Management](./07-Linux-Service-Management/readme.md)
 
 ---
 
