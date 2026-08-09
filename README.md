@@ -16,7 +16,9 @@ Linux izinlerinde `chmod` sayısal sistemini, sticky bit ile paylaşımlı dizin
 
 Servis yönetiminde `enable` ile `start`'ın bağımsız ayarlar olduğunu, `reload` ile `restart` arasındaki farkı `journalctl` log çıktısında somut olarak gördüm.
 
-Sırada log analizi (Log Analysis) var.
+Log analizinde nginx access log'unu `awk`/`grep`/`sort`/`uniq` pipeline'larıyla işleyip en çok istek gönderen IP'yi ve 404 hatalarını path bazında saydım, ardından `sed` ile bul-değiştir, büyük/küçük harf duyarlılığı ve satır silmeyi öğrendim.
+
+Sırada işleme derinleşmesi/scripting fazları var.
 
 ---
 
@@ -30,6 +32,7 @@ Sırada log analizi (Log Analysis) var.
 - [05-Linux-Permissions](./05-Linux-Permissions/): `chmod` sayısal sistemi, sticky bit ile paylaşımlı dizin koruması, `chown`/`chgrp`, `umask` matematiği.
 - [06-Linux-Process-Management](./06-Linux-Process-Management/): `top` ile işlem izleme, gerçek bir kernel "soft lockup" krizi ve çözümü, `kill` sinyalleri, `nice`/`renice` ile önceliklendirme.
 - [07-Linux-Service-Management](./07-Linux-Service-Management/): `systemd` ile servis yönetimi (`enable`/`start`/`reload`/`restart`), `journalctl` ile log filtreleme.
+- [08-Linux-Log-Analysis](./08-Linux-Log-Analysis/): nginx access log analizi (`awk`/`grep`/`sort`/`uniq` pipeline'ları), `sed` ile bul-değiştir ve satır silme.
 
 ---
 
@@ -109,6 +112,18 @@ _`systemctl enable nginx` yazarken yine bir yazım hatası yaptım (`nignx`), ha
   - `journalctl -u`, `-p err`, `--since` filtreleriyle log analizi yapıldı.
 - **Kilometre Taşları & Çıktılar:**
   - 🏗️ Servis Yönetimi Notları: [07-Linux-Service-Management](./07-Linux-Service-Management/readme.md)
+
+### 🔹 Gün 7 | Log Analizi & `sed`
+
+_`awk '{print $7}'` yazarken `pring` yazım hatası yaptım, çıktı boş geldiği için hemen fark ettim. `printf` ile `\n` kullanarak tek satırda test dosyası oluşturmaya çalıştım ama Türkçe klavyede `\` karakteri doğru basılamadı — bunun yerine her satırı ayrı `echo` komutuyla ekleyerek çözdüm._
+
+- **Görevler & Hedefler:**
+  - `curl -I` ile test HTTP istekleri oluşturuldu (200 ve 404), nginx access log formatı okundu.
+  - `awk`/`sort`/`uniq -c` ile en çok istek gönderen IP bulundu.
+  - `grep`/`awk` pipeline'ıyla path bazlı 404 hataları sayıldı.
+  - `sed` ile bul-değiştir, büyük/küçük harf duyarlılığı (`I` flag'i), `-i` ile kalıcı değişiklik, `sed 'Nd'` ile satır silme test edildi.
+- **Kilometre Taşları & Çıktılar:**
+  - 📜 Log Analizi Notları: [08-Linux-Log-Analysis](./08-Linux-Log-Analysis/readme.md)
 
 ---
 
