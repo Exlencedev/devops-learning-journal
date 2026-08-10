@@ -18,7 +18,9 @@ Servis yönetiminde `enable` ile `start`'ın bağımsız ayarlar olduğunu, `rel
 
 Log analizinde nginx access log'unu `awk`/`grep`/`sort`/`uniq` pipeline'larıyla işleyip en çok istek gönderen IP'yi ve 404 hatalarını path bazında saydım, ardından `sed` ile bul-değiştir, büyük/küçük harf duyarlılığı ve satır silmeyi öğrendim.
 
-Sırada işleme derinleşmesi/scripting fazları var.
+Ağ yönetiminde `dig` ve `openssl`'in Rocky Linux minimal kurulumda hazır gelmediğini keşfedip kurdum, DNS sorgulamayı, `ss` ile dinleme portlarını (nginx'in master+worker PID'lerini), ve TLS sertifika doğrulamayı öğrendim.
+
+Sırada depolama yönetimi (Storage Management) var.
 
 ---
 
@@ -33,6 +35,7 @@ Sırada işleme derinleşmesi/scripting fazları var.
 - [06-Linux-Process-Management](./06-Linux-Process-Management/): `top` ile işlem izleme, gerçek bir kernel "soft lockup" krizi ve çözümü, `kill` sinyalleri, `nice`/`renice` ile önceliklendirme.
 - [07-Linux-Service-Management](./07-Linux-Service-Management/): `systemd` ile servis yönetimi (`enable`/`start`/`reload`/`restart`), `journalctl` ile log filtreleme.
 - [08-Linux-Log-Analysis](./08-Linux-Log-Analysis/): nginx access log analizi (`awk`/`grep`/`sort`/`uniq` pipeline'ları), `sed` ile bul-değiştir ve satır silme.
+- [09-Linux-Network-Management](./09-Linux-Network-Management/): `dig` ile DNS sorgulama, `ss` ile dinleme portları, `openssl` ile TLS sertifika doğrulama.
 
 ---
 
@@ -124,6 +127,17 @@ _`awk '{print $7}'` yazarken `pring` yazım hatası yaptım, çıktı boş geldi
   - `sed` ile bul-değiştir, büyük/küçük harf duyarlılığı (`I` flag'i), `-i` ile kalıcı değişiklik, `sed 'Nd'` ile satır silme test edildi.
 - **Kilometre Taşları & Çıktılar:**
   - 📜 Log Analizi Notları: [08-Linux-Log-Analysis](./08-Linux-Log-Analysis/readme.md)
+
+### 🔹 Gün 8 | Ağ Yönetimi (DNS, Portlar, TLS)
+
+_`dig` ve `openssl` komutlarının ikisi de "komut yok" hatası verdi — Rocky Linux minimal kurulumun gerçekten minimal olduğunu, ağ araçlarının ayrıca kurulması gerektiğini öğrendim (`bind-utils`, `openssl` paketleri). Ayrıca `dig google.com` ile `dig @8.8.8.8 google.com`'un aynı sonucu verdiğini görünce `/etc/resolv.conf`'a bakıp sistemin zaten varsayılan olarak 8.8.8.8 kullandığını keşfettim._
+
+- **Görevler & Hedefler:**
+  - `bind-utils` kurulup `dig` ile DNS sorgulama yapıldı, `/etc/resolv.conf` incelendi.
+  - `ss -lntp` ile nginx'in 80 portunda IPv4+IPv6 dinlediği doğrulandı (master+worker PID'leri gözlemlendi).
+  - `openssl` kurulup `s_client` ile TLS sertifika doğrulaması yapıldı (`Verify return code: 0 (ok)`, `TLSv1.3`).
+- **Kilometre Taşları & Çıktılar:**
+  - 🌐 Ağ Yönetimi Notları: [09-Linux-Network-Management](./09-Linux-Network-Management/readme.md)
 
 ---
 
