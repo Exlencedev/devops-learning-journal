@@ -20,7 +20,9 @@ Log analizinde nginx access log'unu `awk`/`grep`/`sort`/`uniq` pipeline'larıyla
 
 Ağ yönetiminde `dig` ve `openssl`'in Rocky Linux minimal kurulumda hazır gelmediğini keşfedip kurdum, DNS sorgulamayı, `ss` ile dinleme portlarını (nginx'in master+worker PID'lerini), ve TLS sertifika doğrulamayı öğrendim.
 
-Sırada depolama yönetimi (Storage Management) var.
+Depolama yönetiminde loop device ile sanal disk oluşturup `fdisk` ile bölümledim, `mkfs.ext4` ile biçimlendirdim, ve `/etc/fstab`'a UUID ile kalıcı mount ekledim — bu sırada bir mount race condition ve bir fstab satır bölünmesi hatasını debug edip yedekten güvenli şekilde geri döndüm.
+
+Sırada işlem otomasyonu / bash scripting fazları var.
 
 ---
 
@@ -36,6 +38,7 @@ Sırada depolama yönetimi (Storage Management) var.
 - [07-Linux-Service-Management](./07-Linux-Service-Management/): `systemd` ile servis yönetimi (`enable`/`start`/`reload`/`restart`), `journalctl` ile log filtreleme.
 - [08-Linux-Log-Analysis](./08-Linux-Log-Analysis/): nginx access log analizi (`awk`/`grep`/`sort`/`uniq` pipeline'ları), `sed` ile bul-değiştir ve satır silme.
 - [09-Linux-Network-Management](./09-Linux-Network-Management/): `dig` ile DNS sorgulama, `ss` ile dinleme portları, `openssl` ile TLS sertifika doğrulama.
+- [10-Linux-Storage-Management](./10-Linux-Storage-Management/): loop device ile sanal disk oluşturma, `fdisk` ile bölümleme, `mkfs.ext4`, `/etc/fstab` ile UUID tabanlı kalıcı mount.
 
 ---
 
@@ -138,6 +141,19 @@ _`dig` ve `openssl` komutlarının ikisi de "komut yok" hatası verdi — Rocky 
   - `openssl` kurulup `s_client` ile TLS sertifika doğrulaması yapıldı (`Verify return code: 0 (ok)`, `TLSv1.3`).
 - **Kilometre Taşları & Çıktılar:**
   - 🌐 Ağ Yönetimi Notları: [09-Linux-Network-Management](./09-Linux-Network-Management/readme.md)
+
+### 🔹 Gün 9 | Depolama Yönetimi (En Riskli Faz)
+
+_Bu fazda 3 gerçek hatayla karşılaştım: `losetup -fP` yerine `-fp` yazdım, mount komutunda bir race condition yaşadım (mkdir ve mount çok hızlı ardışık çalışınca), ve en önemlisi `/etc/fstab`'a satır eklerken tırnak kullanımı yüzünden satır ikiye bölündü. Önceden aldığım yedek (`fstab.backup`) sayesinde saniyeler içinde güvenli şekilde geri dönebildim — kritik sistem dosyalarında yedek almanın neden önemli olduğunu bizzat deneyimledim._
+
+- **Görevler & Hedefler:**
+  - `dd` + `losetup -fP` ile 1GB'lık loop device oluşturuldu.
+  - `fdisk` ile etkileşimli bölümleme yapıldı (`n` → Enter×3 → `w`).
+  - `mkfs.ext4` ile biçimlendirme yapıldı, UUID alındı.
+  - `/etc/fstab`'a UUID ile kalıcı mount girişi eklendi (2 hata debug edilerek).
+  - `mount -a` ile sistem yeniden başlatılmadan güvenli test yapıldı.
+- **Kilometre Taşları & Çıktılar:**
+  - 💾 Depolama Yönetimi Notları: [10-Linux-Storage-Management](./10-Linux-Storage-Management/readme.md)
 
 ---
 
