@@ -22,6 +22,8 @@ Ağ yönetiminde `dig` ve `openssl`'in Rocky Linux minimal kurulumda hazır gelm
 
 Depolama yönetiminde loop device ile sanal disk oluşturup `fdisk` ile bölümledim, `mkfs.ext4` ile biçimlendirdim, ve `/etc/fstab`'a UUID ile kalıcı mount ekledim — bu sırada bir mount race condition ve bir fstab satır bölünmesi hatasını debug edip yedekten güvenli şekilde geri döndüm.
 
+LVM fazında PV → VG → LV katmanlarını kurup, en önemlisi bir mantıksal hacmi **hiç umount etmeden, canlı olarak** genişlettim — sistem loglarında "on-line resizing required" ifadesiyle kesintisiz olduğunu doğruladım.
+
 Sırada işlem otomasyonu / bash scripting fazları var.
 
 ---
@@ -39,6 +41,7 @@ Sırada işlem otomasyonu / bash scripting fazları var.
 - [08-Linux-Log-Analysis](./08-Linux-Log-Analysis/): nginx access log analizi (`awk`/`grep`/`sort`/`uniq` pipeline'ları), `sed` ile bul-değiştir ve satır silme.
 - [09-Linux-Network-Management](./09-Linux-Network-Management/): `dig` ile DNS sorgulama, `ss` ile dinleme portları, `openssl` ile TLS sertifika doğrulama.
 - [10-Linux-Storage-Management](./10-Linux-Storage-Management/): loop device ile sanal disk oluşturma, `fdisk` ile bölümleme, `mkfs.ext4`, `/etc/fstab` ile UUID tabanlı kalıcı mount.
+- [11-Linux-LVM-Management](./11-Linux-LVM-Management/): PV/VG/LV katmanları, `fallocate` ile güvenli test diski, `vgextend`+`lvextend`+`resize2fs` ile kesintisiz depolama genişletme.
 
 ---
 
@@ -154,6 +157,17 @@ _Bu fazda 3 gerçek hatayla karşılaştım: `losetup -fP` yerine `-fp` yazdım,
   - `mount -a` ile sistem yeniden başlatılmadan güvenli test yapıldı.
 - **Kilometre Taşları & Çıktılar:**
   - 💾 Depolama Yönetimi Notları: [10-Linux-Storage-Management](./10-Linux-Storage-Management/readme.md)
+
+### 🔹 Gün 10 | LVM (Mantıksal Hacim Yönetimi)
+
+_Orijinal müfredatta `dd` ile 50GB'lık dosya oluşturulurken host diskinin dolup VM'in donduğu bir olay yaşanmıştı — bu dersi baştan uygulayıp `fallocate` ve küçük MB boyutlarıyla ilerledim. `mkfs.ext4`'te `test_Data` (büyük D) yazıp "dosya yok" hatası aldım, `vgextend`'de de `test_poo` yazım hatası yaptım — ikisini de hızlıca debug ettim. En etkileyici kısım, bir hacmi hiç umount etmeden canlı olarak 455M'dan 638M'a büyütebilmekti._
+
+- **Görevler & Hedefler:**
+  - `fallocate` ile 2 güvenli test diski oluşturuldu, `pvcreate`/`vgcreate`/`lvcreate` ile PV→VG→LV katmanları kuruldu.
+  - `mkfs.ext4` ve `mount` ile hacim kullanılabilir hale getirildi.
+  - `vgextend`+`lvextend`+`resize2fs` ile hacim, mount'luyken kesintisiz genişletildi.
+- **Kilometre Taşları & Çıktılar:**
+  - 🏗️ LVM Yönetimi Notları: [11-Linux-LVM-Management](./11-Linux-LVM-Management/readme.md)
 
 ---
 
