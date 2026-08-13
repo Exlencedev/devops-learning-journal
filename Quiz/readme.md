@@ -11,7 +11,8 @@ Bu belge, fazlar ilerledikçe gerçekten sorulup cevaplanan quiz sorularını i�
 | **Set 1** | 04-06 | 5 | 5 | %100 |
 | **Set 2** | 06-08 | 5 | 5 | %100 |
 | **Set 3** | 09-10 | 4 | 4 | %100 |
-| **TOPLAM** | 04-10 | **14** | **14** | **%100** |
+| **Set 4** | 11 | 2 | 2 | %100 |
+| **TOPLAM** | 04-11 | **16** | **16** | **%100** |
 
 ---
 
@@ -108,6 +109,22 @@ Bu belge, fazlar ilerledikçe gerçekten sorulup cevaplanan quiz sorularını i�
 - **Cevap:** `/dev/loop0p1` gibi cihaz yolları yeniden başlatmalar arasında değişebilir; UUID ise bölümün değişmeyen, benzersiz kimliğidir.
 - **Sonuç:** ✅ Doğru
 - **Faz:** [10-Linux-Storage-Management](./10-Linux-Storage-Management/readme.md)
+
+---
+
+## Set 4 (Faz 11)
+
+#### S15: LVM ile normal (fdisk) bölümleme arasındaki temel fark nedir?
+
+- **Cevap:** Normal bir bölüm (fdisk ile) sabit boyutludur, büyütmek zor/riskli ve genelde kesinti gerektirir; LVM ise havuza yeni disk ekleyip mantıksal hacmi canlı olarak, kesintisiz büyütebilir.
+- **Sonuç:** ✅ Doğru
+- **Faz:** [11-Linux-LVM-Management](./11-Linux-LVM-Management/readme.md)
+
+#### S16: Hacmi genişletirken kesintisiz olduğunu nasıl doğru bildin/gözlemledin?
+
+- **Cevap:** Umount etmeden, hacim kullanımdayken `vgextend`+`lvextend`+`resize2fs` ile genişletme yapıldı — sistem loglarında "on-line resizing required" görülerek kesintisiz olduğu doğrulandı.
+- **Sonuç:** ✅ Doğru
+- **Faz:** [11-Linux-LVM-Management](./11-Linux-LVM-Management/readme.md)
 
 ---
 
