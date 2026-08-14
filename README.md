@@ -24,7 +24,9 @@ Depolama yönetiminde loop device ile sanal disk oluşturup `fdisk` ile bölüml
 
 LVM fazında PV → VG → LV katmanlarını kurup, en önemlisi bir mantıksal hacmi **hiç umount etmeden, canlı olarak** genişlettim — sistem loglarında "on-line resizing required" ifadesiyle kesintisiz olduğunu doğruladım.
 
-Sırada işlem otomasyonu / bash scripting fazları var.
+Görev zamanlama ve otomasyon fazında `cron`/`crontab` yapısının 5 yıldızlı zamanlama mantığını, `crontab -e` ile periyodik görev tanımlamayı, çıktıları log dosyalarına (`>>` ve `2>&1`) yönlendirmeyi ve modern Linux sistemlerinde `systemd timers` ile zaman tabanlı servis tetiklemeyi öğrendim.
+
+Sırada kapsamlı Bash Scripting ve CI/CD / Konteynerizasyon fazları var.
 
 ---
 
@@ -42,6 +44,7 @@ Sırada işlem otomasyonu / bash scripting fazları var.
 - [09-Linux-Network-Management](./09-Linux-Network-Management/): `dig` ile DNS sorgulama, `ss` ile dinleme portları, `openssl` ile TLS sertifika doğrulama.
 - [10-Linux-Storage-Management](./10-Linux-Storage-Management/): loop device ile sanal disk oluşturma, `fdisk` ile bölümleme, `mkfs.ext4`, `/etc/fstab` ile UUID tabanlı kalıcı mount.
 - [11-Linux-LVM-Management](./11-Linux-LVM-Management/): PV/VG/LV katmanları, `fallocate` ile güvenli test diski, `vgextend`+`lvextend`+`resize2fs` ile kesintisiz depolama genişletme.
+- [12-Linux-Task-Scheduling](./12-Linux-Task-Scheduling/): `crontab` sözdizimi, periyodik arka plan otomasyonu, standart çıktı/hata yönlendirmesi (`>>` ve `2>&1`), `systemd timer` ile modern zamanlama.
 
 ---
 
@@ -168,6 +171,18 @@ _Orijinal müfredatta `dd` ile 50GB'lık dosya oluşturulurken host diskinin dol
   - `vgextend`+`lvextend`+`resize2fs` ile hacim, mount'luyken kesintisiz genişletildi.
 - **Kilometre Taşları & Çıktılar:**
   - 🏗️ LVM Yönetimi Notları: [11-Linux-LVM-Management](./11-Linux-LVM-Management/readme.md)
+
+### 🔹 Gün 11 | Görev Zamanlama & Otomasyon (Cron & Timers)
+
+_`crontab` sözdizimindeki 5 yıldızın (`* * * * *`) mantığını öğrenip dakikalık test görevleri çalıştırdım. Cron işlerinde göreli dosya yolu (relative path) kullanımının ortam değişkenleri (`$PATH` ve `$HOME`) kısıtlı olduğu için betiklerin sessizce çökmesine yol açtığını bizzat deneyimledim — tam yol (absolute path) ve `>> output.log 2>&1` ile hem standart çıktıyı hem hataları yönlendirmenin neden kritik olduğunu kavradım._
+
+- **Görevler & Hedefler:**
+  - `crontab -e` ve `crontab -l` ile kullanıcı bazlı zamanlanmış görevler tanımlandı.
+  - Zamanlama sözdizimi (dakika, saat, gün, ay, haftanın günü) ve özel aralıklar (`*/5`, `0 2 * * *`) test edildi.
+  - Otomasyon çıktılarının ve hata loglarının (`stdout` / `stderr`) dosyaya yönlendirilmesi sağlandı.
+  - `systemctl list-timers` ile `systemd` tabanlı modern zamanlayıcıların durumu ve çalışma aralıkları incelendi.
+- **Kilometre Taşları & Çıktılar:**
+  - ⏰ Görev Zamanlama Notları: [12-Linux-Task-Scheduling](./12-Linux-Task-Scheduling/readme.md)
 
 ---
 
