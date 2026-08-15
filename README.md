@@ -4,27 +4,11 @@ Bu repo, Linux ve DevOps temellerini öğrenirken tuttuğum günlük notları be
 
 ## 📍 Şu An Neredeyim
 
-VirtualBox üzerinde Rocky Linux 10.2 kurdum ve sistemi güncel tuttum. Linux temellerinde `hostname`/`hostnamectl` ile sistem kimliğini, `grep`/`cut`/`awk`/`tr` ile pipe tabanlı metin işlemeyi öğrendim. Dosya sistemi yönetiminde `dd` ile test dosyası oluşturdum, bu sırada XFS'in "speculative preallocation" davranışını keşfettim ve `stat` ile doğruladım — ardından `find`/`sort`/`head` pipeline'ı ile en büyük dosyaları listelemeyi öğrendim.
+Forward Proxy / Reverse Proxy fazında, Nginx'in reverse proxy olarak nasıl çalıştığını kavramsal olarak öğrendim ve ilk hands-on denemede gerçek bir 502 Bad Gateway hatasıyla karşılaştım. Backend (Python HTTP sunucusu) ile Nginx'i farklı VM'lerde çalıştırıp `proxy_pass`'te `localhost` kullanınca, `localhost`'un her zaman "bu makine" anlamına geldiğini ve Nginx'in kendi üzerinde olmayan bir backend'i arayamayacağını bizzat deneyimledim. Bu kavramsal temel üzerine, path bazlı yönlendirme ve gerçek sunucu kurulumu sonraki fazda (19-Nginx-Derinlestirme) tamamlanacak.
 
-Vagrant fazında, Windows host'a Vagrant kurup VirtualBox provider'ıyla `vagrant up` ile otomatik bir Rocky Linux 9.3 VM'i ayağa kaldırdım — manuel kurulumla aynı sonuca çok daha hızlı ulaştım.
+Bundan önce, Görev Zamanlama fazında `crontab`'ın 5 yıldızlı zamanlama mantığını, `crontab -e` ile periyodik görev tanımlamayı, çıktıları log dosyalarına (`>>` ve `2>&1`) yönlendirmeyi ve modern Linux sistemlerinde `systemd timers` ile zaman tabanlı servis tetiklemeyi öğrendim.
 
-Kullanıcı/sudo yetki yönetiminde, `visudo` ile kısıtlı bir kullanıcıya sadece nginx komutlarına özel yetki tanımladım ve "En Düşük Yetki Prensibi"ni gerçek testlerle doğruladım (izinli komut sorunsuz çalıştı, izinsiz komut reddedildi).
-
-Linux izinlerinde `chmod` sayısal sistemini, sticky bit ile paylaşımlı dizin korumasını (2 kullanıcıyla gerçek test), `chown`/`chgrp` ile sahiplik değişimini, ve `umask` matematiğini öğrendim.
-
-İşlem yönetiminde `top` ile CPU kullanımını izlerken, `dd` testinin gerçekten VM'i kilitlemesiyle bir kernel "soft lockup" krizi yaşadım ve VM'i güvenli şekilde kurtardım — ardından `kill`/`nice`/`renice` ile işlemleri kontrollü şekilde sonlandırıp önceliklendirmeyi öğrendim.
-
-Servis yönetiminde `enable` ile `start`'ın bağımsız ayarlar olduğunu, `reload` ile `restart` arasındaki farkı `journalctl` log çıktısında somut olarak gördüm.
-
-Log analizinde nginx access log'unu `awk`/`grep`/`sort`/`uniq` pipeline'larıyla işleyip en çok istek gönderen IP'yi ve 404 hatalarını path bazında saydım, ardından `sed` ile bul-değiştir, büyük/küçük harf duyarlılığı ve satır silmeyi öğrendim.
-
-Ağ yönetiminde `dig` ve `openssl`'in Rocky Linux minimal kurulumda hazır gelmediğini keşfedip kurdum, DNS sorgulamayı, `ss` ile dinleme portlarını (nginx'in master+worker PID'lerini), ve TLS sertifika doğrulamayı öğrendim.
-
-Depolama yönetiminde loop device ile sanal disk oluşturup `fdisk` ile bölümledim, `mkfs.ext4` ile biçimlendirdim, ve `/etc/fstab`'a UUID ile kalıcı mount ekledim — bu sırada bir mount race condition ve bir fstab satır bölünmesi hatasını debug edip yedekten güvenli şekilde geri döndüm.
-
-LVM fazında PV → VG → LV katmanlarını kurup, en önemlisi bir mantıksal hacmi **hiç umount etmeden, canlı olarak** genişlettim — sistem loglarında "on-line resizing required" ifadesiyle kesintisiz olduğunu doğruladım.
-
-Görev zamanlama ve otomasyon fazında `cron`/`crontab` yapısının 5 yıldızlı zamanlama mantığını, `crontab -e` ile periyodik görev tanımlamayı, çıktıları log dosyalarına (`>>` ve `2>&1`) yönlendirmeyi ve modern Linux sistemlerinde `systemd timers` ile zaman tabanlı servis tetiklemeyi öğrendim.
+SSH Yönetimi fazında, VirtualBox'ın NAT ağ modunda host-VM arası doğrudan IP erişimi olmadığını keşfedip Port Forwarding ile çözdüm, key-based authentication kurdum, `sshd_config`'i sertleştirdim ve fail2ban ile brute-force koruması aktifleştirdim.
 
 Sırada kapsamlı Bash Scripting ve CI/CD / Konteynerizasyon fazları var.
 
@@ -45,6 +29,8 @@ Sırada kapsamlı Bash Scripting ve CI/CD / Konteynerizasyon fazları var.
 - [10-Linux-Storage-Management](./10-Linux-Storage-Management/): loop device ile sanal disk oluşturma, `fdisk` ile bölümleme, `mkfs.ext4`, `/etc/fstab` ile UUID tabanlı kalıcı mount.
 - [11-Linux-LVM-Management](./11-Linux-LVM-Management/): PV/VG/LV katmanları, `fallocate` ile güvenli test diski, `vgextend`+`lvextend`+`resize2fs` ile kesintisiz depolama genişletme.
 - [12-Linux-Task-Scheduling](./12-Linux-Task-Scheduling/): `crontab` sözdizimi, periyodik arka plan otomasyonu, standart çıktı/hata yönlendirmesi (`>>` ve `2>&1`), `systemd timer` ile modern zamanlama.
+- [12-Linux-SSH-Management](./12-Linux-SSH-Management/): SSH servis yönetimi, VirtualBox NAT port forwarding, key-based authentication, `sshd_config` sertleştirme, firewalld/SELinux doğrulaması, fail2ban ile brute-force koruması.
+- [13-Forward-Reverse-Proxy](./13-Forward-Reverse-Proxy/): Forward proxy ve reverse proxy kavramları, Nginx `location`/`proxy_pass` direktifleri, ilk reverse proxy denemesinde alınan 502 Bad Gateway hatası ve kök nedeni.
 
 ---
 
@@ -179,10 +165,38 @@ _`crontab` sözdizimindeki 5 yıldızın (`* * * * *`) mantığını öğrenip d
 - **Görevler & Hedefler:**
   - `crontab -e` ve `crontab -l` ile kullanıcı bazlı zamanlanmış görevler tanımlandı.
   - Zamanlama sözdizimi (dakika, saat, gün, ay, haftanın günü) ve özel aralıklar (`*/5`, `0 2 * * *`) test edildi.
-  - Otomasyon çıktılarının ve hata loglarının (`stdout` / `stderr`) dosyaya yönlendirilmesi sağlandı.
-  - `systemctl list-timers` ile `systemd` tabanlı modern zamanlayıcıların durumu ve çalışma aralıkları incelendi.
+  - Otomasyon çıktılarının ve hata loglarının (stdout / stderr) dosyaya yönlendirilmesi sağlandı.
+  - `systemctl list-timers` ile systemd tabanlı modern zamanlayıcıların durumu ve çalışma aralıkları incelendi.
 - **Kilometre Taşları & Çıktılar:**
   - ⏰ Görev Zamanlama Notları: [12-Linux-Task-Scheduling](./12-Linux-Task-Scheduling/readme.md)
+
+### 🔹 Gün 11.5 | SSH Yönetimi (Uzaktan Erişim Güvenliği)
+
+_VirtualBox'ın varsayılan NAT modunda VM'e host'tan doğrudan IP ile bağlanamayacağımı keşfettim — VM host'un arkasında gizli kalıyor. Port Forwarding kuralıyla (host:2222 → VM:22) çözdüm. Ayrıca Windows'un yerleşik OpenSSH istemcisinde Linux/Mac'e özgü `ssh-copy-id` komutunun olmadığını, Rocky Linux minimal kurulumda da `nano`'nun bulunmadığını öğrendim — ikisi için de alternatif (`type | ssh ... cat >>` ve `sed -i`) buldum. En kritik ders: `PasswordAuthentication no` gibi riskli bir değişiklik yapmadan önce, olası bir hatada kendimi VM'den tamamen dışarıda bırakmamak için mevcut SSH oturumunu kapatmadan değişikliği ayrı bir pencereden test etmekti._
+
+- **Görevler & Hedefler:**
+  - `sshd` servis durumu ve dinlenen portlar (`ss -tlnp`) doğrulandı.
+  - VirtualBox NAT + Port Forwarding ile host:2222 → VM:22 yönlendirmesi kuruldu.
+  - `ed25519` SSH key çifti üretildi, public key manuel olarak `authorized_keys`'e aktarıldı ve şifresiz giriş doğrulandı.
+  - `sshd_config` `sed` ile sertleştirildi (`PermitRootLogin no`, `PasswordAuthentication no`, `MaxAuthTries 3`, `ClientAliveInterval`/`CountMax`, `X11Forwarding no`), `sshd -t` ile syntax kontrolü ve güvenli restart yapıldı.
+  - `firewalld` üzerinde `ssh` servisinin zaten açık geldiği doğrulandı.
+  - `SELinux` durumu (`Enforcing`/`targeted`) kontrol edildi, port değişmediği için ekstra işlem gerekmediği teyit edildi.
+  - EPEL + CRB üzerinden `fail2ban` kuruldu, `jail.local` ile SSH'a özel brute-force koruması (3 deneme/10dk → 1 saat ban) aktifleştirildi.
+- **Kilometre Taşları & Çıktılar:**
+  - 🔒 SSH Yönetimi Notları: [12-Linux-SSH-Management](./12-Linux-SSH-Management/readme.md)
+
+### 🔹 Gün 12 | Forward Proxy / Reverse Proxy Kavramları
+
+_Nginx'i reverse proxy olarak ilk kez denedim ve beklenmedik bir 502 Bad Gateway hatası aldım. Sebebini araştırınca `localhost`'un proxy açısından her zaman "bu makine" anlamına geldiğini, backend farklı bir VM'de çalıştığı için Nginx'in orada bir şey bulamadığını kavradım — bu, proxy kavramını ezbere değil gerçek bir hatadan öğrenmemi sağladı._
+
+- **Görevler & Hedefler:**
+  - Forward proxy ile reverse proxy arasındaki fark (istemci/sunucu önünde durma) kavramsal olarak öğrenildi.
+  - Nginx'in `location` bloklarının reverse proxy mantığıyla (path → backend eşlemesi) örtüştüğü görüldü.
+  - Backend olarak `python3 -m http.server 8080` başlatıldı, Nginx'te `proxy_pass http://localhost:8080;` tanımlandı.
+  - `nginx -t` ile config test edildi, `systemctl restart nginx` ile uygulandı.
+  - `curl localhost` ile test edildi → **502 Bad Gateway** alındı ve kök nedeni (backend farklı VM'de, `localhost` yanlış hedefi işaret ediyor) analiz edildi.
+- **Kilometre Taşları & Çıktılar:**
+  - 🔀 Proxy Kavramları Notları: [13-Forward-Reverse-Proxy](./13-Forward-Reverse-Proxy/readme.md)
 
 ---
 
