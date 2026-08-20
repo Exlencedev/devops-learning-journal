@@ -4,13 +4,15 @@ Bu repo, Linux ve DevOps temellerini öğrenirken tuttuğum günlük notları be
 
 ## 📍 Şu An Neredeyim
 
-Forward Proxy / Reverse Proxy fazında, Nginx'in reverse proxy olarak nasıl çalıştığını kavramsal olarak öğrendim ve ilk hands-on denemede gerçek bir 502 Bad Gateway hatasıyla karşılaştım. Backend (Python HTTP sunucusu) ile Nginx'i farklı VM'lerde çalıştırıp `proxy_pass`'te `localhost` kullanınca, `localhost`'un her zaman "bu makine" anlamına geldiğini ve Nginx'in kendi üzerinde olmayan bir backend'i arayamayacağını bizzat deneyimledim. Bu kavramsal temel üzerine, path bazlı yönlendirme ve gerçek sunucu kurulumu sonraki fazda (19-Nginx-Derinlestirme) tamamlanacak.
+Bash Scripting fazını tamamladım. Linux üzerinde Bash kullanarak sistem disk kullanımını otomatik olarak kontrol eden bir script geliştirdim. `df`, `awk` ve `tr` komutlarını pipeline içerisinde kullanarak disk kullanım yüzdesini aldım ve `if/else` ile `%80` eşik kontrolü oluşturdum. Scripti hem normal kullanımda hem de `%80` üzerindeki kullanım durumunu simüle ederek test ettim ve Git ile versiyonladım.
+
+Bundan önce, Forward Proxy / Reverse Proxy fazında Nginx'in reverse proxy olarak nasıl çalıştığını kavramsal olarak öğrendim ve ilk hands-on denemede gerçek bir 502 Bad Gateway hatasıyla karşılaştım. Backend (Python HTTP sunucusu) ile Nginx'i farklı VM'lerde çalıştırıp `proxy_pass`'te `localhost` kullanınca, `localhost`'un her zaman "bu makine" anlamına geldiğini ve Nginx'in kendi üzerinde olmayan bir backend'i arayamayacağını bizzat deneyimledim. Bu kavramsal temel üzerine, path bazlı yönlendirme ve gerçek sunucu kurulumu sonraki fazda (19-Nginx-Derinlestirme) tamamlanacak.
 
 Bundan önce, Görev Zamanlama fazında `crontab`'ın 5 yıldızlı zamanlama mantığını, `crontab -e` ile periyodik görev tanımlamayı, çıktıları log dosyalarına (`>>` ve `2>&1`) yönlendirmeyi ve modern Linux sistemlerinde `systemd timers` ile zaman tabanlı servis tetiklemeyi öğrendim.
 
 SSH Yönetimi fazında, VirtualBox'ın NAT ağ modunda host-VM arası doğrudan IP erişimi olmadığını keşfedip Port Forwarding ile çözdüm, key-based authentication kurdum, `sshd_config`'i sertleştirdim ve fail2ban ile brute-force koruması aktifleştirdim.
 
-Sırada kapsamlı Bash Scripting ve CI/CD / Konteynerizasyon fazları var.
+Sırada CI/CD ve Konteynerizasyon fazları var.
 
 ---
 
@@ -19,7 +21,7 @@ Sırada kapsamlı Bash Scripting ve CI/CD / Konteynerizasyon fazları var.
 - [00-VM-Setup](./00-VM-Setup/): VirtualBox kurulumu ve Rocky Linux 10.2'nin ISO'dan manuel kurulumu.
 - [01-Linux-Basics](./01-Linux-Basics/): Sistem kimliği komutları (`hostname`, `hostnamectl`) ve pipe tabanlı metin işleme (`grep`, `cut`, `awk`, `tr`).
 - [02-Vagrant-Automation](./02-Vagrant-Automation/): Windows host'a Vagrant kurulumu, VirtualBox provider ile otomatik VM oluşturma (`vagrant up`, `vagrant ssh`).
-- [03-File-System-Management](./03-File-System-Management/): `dd` ile test dosyası oluşturma, XFS speculative preallocation keşfi, ve en büyük dosyaları bulma pipeline'ı.
+- [03-File-System-Management](./03-File-System-Management/): `dd` ile test dosyası oluşturma, XFS speculative preallocation keşfi ve en büyük dosyaları bulma pipeline'ı.
 - [04-User-Privilege-Management](./04-User-Privilege-Management/): `visudo` ile En Düşük Yetki Prensibi — kısıtlı bir kullanıcıya sadece nginx komutlarına özel, şifresiz sudo yetkisi tanımlama.
 - [05-Linux-Permissions](./05-Linux-Permissions/): `chmod` sayısal sistemi, sticky bit ile paylaşımlı dizin koruması, `chown`/`chgrp`, `umask` matematiği.
 - [06-Linux-Process-Management](./06-Linux-Process-Management/): `top` ile işlem izleme, gerçek bir kernel "soft lockup" krizi ve çözümü, `kill` sinyalleri, `nice`/`renice` ile önceliklendirme.
@@ -27,10 +29,11 @@ Sırada kapsamlı Bash Scripting ve CI/CD / Konteynerizasyon fazları var.
 - [08-Linux-Log-Analysis](./08-Linux-Log-Analysis/): nginx access log analizi (`awk`/`grep`/`sort`/`uniq` pipeline'ları), `sed` ile bul-değiştir ve satır silme.
 - [09-Linux-Network-Management](./09-Linux-Network-Management/): `dig` ile DNS sorgulama, `ss` ile dinleme portları, `openssl` ile TLS sertifika doğrulama.
 - [10-Linux-Storage-Management](./10-Linux-Storage-Management/): loop device ile sanal disk oluşturma, `fdisk` ile bölümleme, `mkfs.ext4`, `/etc/fstab` ile UUID tabanlı kalıcı mount.
-- [11-Linux-LVM-Management](./11-Linux-LVM-Management/): PV/VG/LV katmanları, `fallocate` ile güvenli test diski, `vgextend`+`lvextend`+`resize2fs` ile kesintisiz depolama genişletme.
+- [11-Linux-LVM-Management](./11-Linux-LVM-Management/): PV/VG/LV katmanları, `fallocate` ile güvenli test diski, `vgextend` + `lvextend` + `resize2fs` ile kesintisiz depolama genişletme.
 - [12-Linux-Task-Scheduling](./12-Linux-Task-Scheduling/): `crontab` sözdizimi, periyodik arka plan otomasyonu, standart çıktı/hata yönlendirmesi (`>>` ve `2>&1`), `systemd timer` ile modern zamanlama.
 - [12-Linux-SSH-Management](./12-Linux-SSH-Management/): SSH servis yönetimi, VirtualBox NAT port forwarding, key-based authentication, `sshd_config` sertleştirme, firewalld/SELinux doğrulaması, fail2ban ile brute-force koruması.
 - [13-Forward-Reverse-Proxy](./13-Forward-Reverse-Proxy/): Forward proxy ve reverse proxy kavramları, Nginx `location`/`proxy_pass` direktifleri, ilk reverse proxy denemesinde alınan 502 Bad Gateway hatası ve kök nedeni.
+- [14-Linux-Bash-Scripting](./14-Linux-Bash-Scripting/): Bash ile disk kullanımını kontrol eden `disk_check.sh` scripti, `df`/`awk`/`tr` pipeline'ı, `%80` eşik kontrolü ve Git ile versiyonlama.
 
 ---
 
@@ -136,7 +139,7 @@ _`dig` ve `openssl` komutlarının ikisi de "komut yok" hatası verdi — Rocky 
 
 ### 🔹 Gün 9 | Depolama Yönetimi (En Riskli Faz)
 
-_Bu fazda 3 gerçek hatayla karşılaştım: `losetup -fP` yerine `-fp` yazdım, mount komutunda bir race condition yaşadım (mkdir ve mount çok hızlı ardışık çalışınca), ve en önemlisi `/etc/fstab`'a satır eklerken tırnak kullanımı yüzünden satır ikiye bölündü. Önceden aldığım yedek (`fstab.backup`) sayesinde saniyeler içinde güvenli şekilde geri dönebildim — kritik sistem dosyalarında yedek almanın neden önemli olduğunu bizzat deneyimledim._
+_Bu fazda 3 gerçek hatayla karşılaştım: `losetup -fP` yerine `-fp` yazdım, mount komutunda bir race condition yaşadım (mkdir ve mount çok hızlı ardışık çalıştırınca), ve en önemlisi `/etc/fstab`'a satır eklerken tırnak kullanımı yüzünden satır ikiye bölündü. Önceden aldığım yedek (`fstab.backup`) sayesinde saniyeler içinde güvenli şekilde geri dönebildim — kritik sistem dosyalarında yedek almanın neden önemli olduğunu bizzat deneyimledim._
 
 - **Görevler & Hedefler:**
   - `dd` + `losetup -fP` ile 1GB'lık loop device oluşturuldu.
@@ -154,7 +157,7 @@ _Orijinal müfredatta `dd` ile 50GB'lık dosya oluşturulurken host diskinin dol
 - **Görevler & Hedefler:**
   - `fallocate` ile 2 güvenli test diski oluşturuldu, `pvcreate`/`vgcreate`/`lvcreate` ile PV→VG→LV katmanları kuruldu.
   - `mkfs.ext4` ve `mount` ile hacim kullanılabilir hale getirildi.
-  - `vgextend`+`lvextend`+`resize2fs` ile hacim, mount'luyken kesintisiz genişletildi.
+  - `vgextend` + `lvextend` + `resize2fs` ile hacim, mount'luyken kesintisiz genişletildi.
 - **Kilometre Taşları & Çıktılar:**
   - 🏗️ LVM Yönetimi Notları: [11-Linux-LVM-Management](./11-Linux-LVM-Management/readme.md)
 
@@ -197,6 +200,24 @@ _Nginx'i reverse proxy olarak ilk kez denedim ve beklenmedik bir 502 Bad Gateway
   - `curl localhost` ile test edildi → **502 Bad Gateway** alındı ve kök nedeni (backend farklı VM'de, `localhost` yanlış hedefi işaret ediyor) analiz edildi.
 - **Kilometre Taşları & Çıktılar:**
   - 🔀 Proxy Kavramları Notları: [13-Forward-Reverse-Proxy](./13-Forward-Reverse-Proxy/readme.md)
+
+### 🔹 Gün 13 | Bash Scripting & Disk Kullanım Kontrolü
+
+_Bash scripting fazında ilk kez gerçek bir sistem bilgisini otomatik olarak kontrol eden küçük bir script yazdım. `df` çıktısından disk kullanım yüzdesini `awk` ve `tr` ile ayıklarken birkaç yazım hatası yaptım (`Df`, `PR0NT`, `if` koşulundaki boşluk eksikliği) ve hata mesajlarını okuyarak debug ettim. Ayrıca scriptin `%80` üzerindeki davranışını gerçek diski doldurmadan `usage=90` ile simüle ederek test ettim._
+
+- **Görevler & Hedefler:**
+  - `df -h /` ile root (`/`) disk bölümünün kullanım durumu kontrol edildi.
+  - `disk_check.sh` adlı Bash scripti oluşturuldu.
+  - `df`, `awk` ve `tr` kullanılarak disk kullanım yüzdesi otomatik olarak alındı.
+  - `if/else` kullanılarak `%80` disk kullanım eşiği oluşturuldu.
+  - Disk kullanımı normal olduğunda `Disk usage is normal.` mesajı gösterildi.
+  - `%80` üzerindeki durum `usage=90` ile simüle edilerek `WARNING` mesajı test edildi.
+  - `chmod +x` ile script çalıştırılabilir hale getirildi.
+  - `./disk_check.sh` ile script gerçek sistem üzerinde çalıştırıldı.
+  - `git init`, `git add` ve `git commit` kullanılarak script Git repository'sine kaydedildi.
+  - `git commit -m "Add disk usage check script"` ile commit oluşturuldu.
+- **Kilometre Taşları & Çıktılar:**
+  - 📊 Bash Scripting Notları: [14-Linux-Bash-Scripting](./14-Linux-Bash-Scripting/readme.md)
 
 ---
 
