@@ -4,15 +4,15 @@ Bu repo, Linux ve DevOps temellerini öğrenirken tuttuğum günlük notları be
 
 ## 📍 Şu An Neredeyim
 
-Bash Scripting fazını tamamladım. Linux üzerinde Bash kullanarak sistem disk kullanımını otomatik olarak kontrol eden bir script geliştirdim. `df`, `awk` ve `tr` komutlarını pipeline içerisinde kullanarak disk kullanım yüzdesini aldım ve `if/else` ile `%80` eşik kontrolü oluşturdum. Scripti hem normal kullanımda hem de `%80` üzerindeki kullanım durumunu simüle ederek test ettim ve Git ile versiyonladım.
+Cron & Otomasyon fazını tamamladım. 14. fazdaki disk kullanım scriptini `crontab` ile her gece 02:00'de çalışacak şekilde zamanladım ve iki gerçek hatayla karşılaştım: `vi`'de uzun bir crontab satırının görsel olarak sarılıp aslında ikiye bölünmesi yüzünden `bad minute` hatası aldım, ve script içine eklediğim bir `sudo` komutunun, cron'un terminal'siz çalışma bağlamında "a password is required" hatasıyla sessizce başarısız olduğunu `at` ile simüle ederek bizzat gördüm. İkinci sorunu, geniş yetki vermek yerine `visudo` ile sadece o tek komuta özel dar kapsamlı bir `NOPASSWD` kuralıyla çözdüm. Son olarak Nginx'in `logrotate` config'ini inceleyip `-f` ile canlı tetikledim, `delaycompress` ve durum takip dosyasının nasıl çalıştığını doğrudan gözlemledim.
 
-Bundan önce, Forward Proxy / Reverse Proxy fazında Nginx'in reverse proxy olarak nasıl çalıştığını kavramsal olarak öğrendim ve ilk hands-on denemede gerçek bir 502 Bad Gateway hatasıyla karşılaştım. Backend (Python HTTP sunucusu) ile Nginx'i farklı VM'lerde çalıştırıp `proxy_pass`'te `localhost` kullanınca, `localhost`'un her zaman "bu makine" anlamına geldiğini ve Nginx'in kendi üzerinde olmayan bir backend'i arayamayacağını bizzat deneyimledim. Bu kavramsal temel üzerine, path bazlı yönlendirme ve gerçek sunucu kurulumu sonraki fazda (19-Nginx-Derinlestirme) tamamlanacak.
+Bundan önce, Bash Scripting fazında Linux üzerinde disk kullanımını otomatik kontrol eden bir script geliştirdim. `df`, `awk` ve `tr` komutlarını pipeline içerisinde kullanarak disk kullanım yüzdesini aldım ve `if/else` ile `%80` eşik kontrolü oluşturdum.
 
-Bundan önce, Görev Zamanlama fazında `crontab`'ın 5 yıldızlı zamanlama mantığını, `crontab -e` ile periyodik görev tanımlamayı, çıktıları log dosyalarına (`>>` ve `2>&1`) yönlendirmeyi ve modern Linux sistemlerinde `systemd timers` ile zaman tabanlı servis tetiklemeyi öğrendim.
+Ondan önce, Forward Proxy / Reverse Proxy fazında Nginx'in reverse proxy olarak nasıl çalıştığını kavramsal olarak öğrendim ve ilk hands-on denemede gerçek bir 502 Bad Gateway hatasıyla karşılaştım.
 
 SSH Yönetimi fazında, VirtualBox'ın NAT ağ modunda host-VM arası doğrudan IP erişimi olmadığını keşfedip Port Forwarding ile çözdüm, key-based authentication kurdum, `sshd_config`'i sertleştirdim ve fail2ban ile brute-force koruması aktifleştirdim.
 
-Sırada CI/CD ve Konteynerizasyon fazları var.
+Sırada Git Basics ve CI/CD / Konteynerizasyon fazları var.
 
 ---
 
@@ -34,6 +34,7 @@ Sırada CI/CD ve Konteynerizasyon fazları var.
 - [12-Linux-SSH-Management](./12-Linux-SSH-Management/): SSH servis yönetimi, VirtualBox NAT port forwarding, key-based authentication, `sshd_config` sertleştirme, firewalld/SELinux doğrulaması, fail2ban ile brute-force koruması.
 - [13-Forward-Reverse-Proxy](./13-Forward-Reverse-Proxy/): Forward proxy ve reverse proxy kavramları, Nginx `location`/`proxy_pass` direktifleri, ilk reverse proxy denemesinde alınan 502 Bad Gateway hatası ve kök nedeni.
 - [14-Linux-Bash-Scripting](./14-Linux-Bash-Scripting/): Bash ile disk kullanımını kontrol eden `disk_check.sh` scripti, `df`/`awk`/`tr` pipeline'ı, `%80` eşik kontrolü ve Git ile versiyonlama.
+- [15-Linux-Cron-Automation](./15-Linux-Cron-Automation/): `disk_check.sh`'ı `crontab` ile zamanlama, `vi`'de bölünen satırdan kaynaklı `bad minute` hatası, cron/at bağlamında terminal'siz `sudo` başarısızlığı ve dar kapsamlı `sudoers` çözümü, Nginx `logrotate` config'ine bakış.
 
 ---
 
@@ -218,6 +219,21 @@ _Bash scripting fazında ilk kez gerçek bir sistem bilgisini otomatik olarak ko
   - `git commit -m "Add disk usage check script"` ile commit oluşturuldu.
 - **Kilometre Taşları & Çıktılar:**
   - 📊 Bash Scripting Notları: [14-Linux-Bash-Scripting](./14-Linux-Bash-Scripting/readme.md)
+
+### 🔹 Gün 14 | Cron & Otomasyon (Gerçek Bir `sudo`-Cron Çakışması)
+
+_13. fazdaki `disk_check.sh`'ı `crontab` ile her gece 02:00'e bağlarken, `vi`'de uzun satırın terminal genişliği yüzünden görsel olarak sarılıp aslında ikiye bölündüğünü fark etmeden kaydettim — `bad minute` hatası aldım, çözümü editörsüz bir shell pipe kalıbı (`(crontab -l; echo "...") | crontab -`) oldu. Asıl öğretici kısım script'e kasıtlı olarak eklediğim bir `sudo` komutuyla geldi: elle çalıştırınca sorunsuzdu, ama cron'un gerçek çalışma bağlamını `at now + 1 minute` ile simüle edince `sudo`'nun hiçbir terminal bulamayıp "a password is required" diyerek sessizce başarısız olduğunu bizzat gördüm — `2>&1` ile log'a yönlendirmemiş olsam bu hata muhtemelen hiç fark edilmeyecekti. Geniş yetki vermek yerine `visudo` ile sadece o tek komuta özel dar kapsamlı bir `NOPASSWD` kuralı tanımlayarak çözdüm. Sonda Nginx'in `logrotate` config'ini `-f` ile zorla tetikleyip `delaycompress`'in ve durum takip dosyasının nasıl çalıştığını canlı doğruladım._
+
+- **Görevler & Hedefler:**
+  - `disk_check.sh`, `crontab -e` ile her gece 02:00'de çalışacak şekilde zamanlandı.
+  - `vi`'de satırın ikiye bölünmesinden kaynaklanan `bad minute` hatası debug edildi, editörsüz bir kalıpla çözüldü.
+  - Script'e kasıtlı olarak `sudo systemctl status sshd` satırı eklendi.
+  - `sudo -k` ve `at now + 1 minute` ile cron'un terminal'siz bağlamı gerçekçi şekilde simüle edildi, gerçek bir `sudo: a password is required` hatası yakalandı.
+  - `visudo` ile sadece o komuta özel dar kapsamlı bir `NOPASSWD` kuralı tanımlandı ve doğrulandı (`sudo -l -U ege`).
+  - Aynı senaryo tekrar test edildi, hatasız tamamlandığı doğrulandı.
+  - Nginx'in `/etc/logrotate.d/nginx` config'i incelendi, `logrotate -f` ile canlı tetiklendi, `create`/`delaycompress`/durum dosyası davranışı gözlemlendi.
+- **Kilometre Taşları & Çıktılar:**
+  - ⏰ Cron & Otomasyon Notları: [15-Linux-Cron-Automation](./15-Linux-Cron-Automation/readme.md)
 
 ---
 
