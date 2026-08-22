@@ -4,15 +4,13 @@ Bu repo, Linux ve DevOps temellerini öğrenirken tuttuğum günlük notları be
 
 ## 📍 Şu An Neredeyim
 
-Cron & Otomasyon fazını tamamladım. 14. fazdaki disk kullanım scriptini `crontab` ile her gece 02:00'de çalışacak şekilde zamanladım ve iki gerçek hatayla karşılaştım: `vi`'de uzun bir crontab satırının görsel olarak sarılıp aslında ikiye bölünmesi yüzünden `bad minute` hatası aldım, ve script içine eklediğim bir `sudo` komutunun, cron'un terminal'siz çalışma bağlamında "a password is required" hatasıyla sessizce başarısız olduğunu `at` ile simüle ederek bizzat gördüm. İkinci sorunu, geniş yetki vermek yerine `visudo` ile sadece o tek komuta özel dar kapsamlı bir `NOPASSWD` kuralıyla çözdüm. Son olarak Nginx'in `logrotate` config'ini inceleyip `-f` ile canlı tetikledim, `delaycompress` ve durum takip dosyasının nasıl çalıştığını doğrudan gözlemledim.
+Git — Branch, Merge ve Push Çakışması fazını tamamladım. `git checkout -b` ile branch oluşturup izolasyonu kanıtladım, sonra `git merge` ile fast-forward birleştirme yaptım. Ardından gerçek bir push çakışması senaryosu kurdum: aynı README.md'yi hem VM'de hem GitHub web arayüzünden bağımsız değiştirip `git push`'un reddedilmesini, `git pull`'un modern Git'te stratejinin açıkça belirtilmesini istemesini, ve gerçek bir merge çakışmasını elle çözdüm — sonunda GitHub'ın artık düz şifre değil, Personal Access Token istediğini de deneyimledim. Bunun ortasında hiç beklenmedik bir kriz yaşadım: `git clone` denerken VM'in interneti tamamen kesildi, teşhis sonunda 10. fazdan kalma bir loop device mount girdisinin `/etc/fstab`'da unutulduğunu ve VM'i her yeniden başlatmada tüm sistemi "emergency mode"a düşürdüğünü keşfettim — `fstab`'dan temizleyip sistemi kurtardım.
 
-Bundan önce, Bash Scripting fazında Linux üzerinde disk kullanımını otomatik kontrol eden bir script geliştirdim. `df`, `awk` ve `tr` komutlarını pipeline içerisinde kullanarak disk kullanım yüzdesini aldım ve `if/else` ile `%80` eşik kontrolü oluşturdum.
+Bundan önce, Cron & Otomasyon fazını tamamladım. 14. fazdaki disk kullanım scriptini `crontab` ile her gece 02:00'de çalışacak şekilde zamanladım ve iki gerçek hatayla karşılaştım: `vi`'de uzun bir crontab satırının görsel olarak sarılıp aslında ikiye bölünmesi yüzünden `bad minute` hatası aldım, ve script içine eklediğim bir `sudo` komutunun, cron'un terminal'siz çalışma bağlamında "a password is required" hatasıyla sessizce başarısız olduğunu `at` ile simüle ederek bizzat gördüm. İkinci sorunu, geniş yetki vermek yerine `visudo` ile sadece o tek komuta özel dar kapsamlı bir `NOPASSWD` kuralıyla çözdüm.
 
-Ondan önce, Forward Proxy / Reverse Proxy fazında Nginx'in reverse proxy olarak nasıl çalıştığını kavramsal olarak öğrendim ve ilk hands-on denemede gerçek bir 502 Bad Gateway hatasıyla karşılaştım.
+Ondan önce, Bash Scripting fazında Linux üzerinde disk kullanımını otomatik kontrol eden bir script geliştirdim. `df`, `awk` ve `tr` komutlarını pipeline içerisinde kullanarak disk kullanım yüzdesini aldım ve `if/else` ile `%80` eşik kontrolü oluşturdum.
 
-SSH Yönetimi fazında, VirtualBox'ın NAT ağ modunda host-VM arası doğrudan IP erişimi olmadığını keşfedip Port Forwarding ile çözdüm, key-based authentication kurdum, `sshd_config`'i sertleştirdim ve fail2ban ile brute-force koruması aktifleştirdim.
-
-Sırada Git Basics ve CI/CD / Konteynerizasyon fazları var.
+Sırada CI/CD ve Konteynerizasyon fazları var.
 
 ---
 
@@ -35,6 +33,7 @@ Sırada Git Basics ve CI/CD / Konteynerizasyon fazları var.
 - [13-Forward-Reverse-Proxy](./13-Forward-Reverse-Proxy/): Forward proxy ve reverse proxy kavramları, Nginx `location`/`proxy_pass` direktifleri, ilk reverse proxy denemesinde alınan 502 Bad Gateway hatası ve kök nedeni.
 - [14-Linux-Bash-Scripting](./14-Linux-Bash-Scripting/): Bash ile disk kullanımını kontrol eden `disk_check.sh` scripti, `df`/`awk`/`tr` pipeline'ı, `%80` eşik kontrolü ve Git ile versiyonlama.
 - [15-Linux-Cron-Automation](./15-Linux-Cron-Automation/): `disk_check.sh`'ı `crontab` ile zamanlama, `vi`'de bölünen satırdan kaynaklı `bad minute` hatası, cron/at bağlamında terminal'siz `sudo` başarısızlığı ve dar kapsamlı `sudoers` çözümü, Nginx `logrotate` config'ine bakış.
+- [16-Linux-Git-Basics](./16-Linux-Git-Basics/): `git branch`/`git merge` ile fast-forward birleştirme, gerçek bir push çakışması ve merge çakışması çözümü, GitHub Personal Access Token ile kimlik doğrulama, ve bir `/etc/fstab` girdisinin sebep olduğu emergency mode krizinin çözümü.
 
 ---
 
@@ -234,6 +233,22 @@ _13. fazdaki `disk_check.sh`'ı `crontab` ile her gece 02:00'e bağlarken, `vi`'
   - Nginx'in `/etc/logrotate.d/nginx` config'i incelendi, `logrotate -f` ile canlı tetiklendi, `create`/`delaycompress`/durum dosyası davranışı gözlemlendi.
 - **Kilometre Taşları & Çıktılar:**
   - ⏰ Cron & Otomasyon Notları: [15-Linux-Cron-Automation](./15-Linux-Cron-Automation/readme.md)
+
+### 🔹 Gün 15 | Git — Branch, Merge ve Gerçek Bir Push Çakışması
+
+_Bu faz, planlanandan çok daha zengin geçti. Branch/merge kısmı sorunsuzdu, ama gerçek push çakışması senaryosunu (ayrı bir test reposunda) kurarken `git clone` sırasında VM'in interneti tamamen kesildi. Teşhis beni `NetworkManager`'ın çökmüş olduğunu görmeye, onu yeniden başlatmayı denerken de VM'in "emergency mode"a düşmesine götürdü. `journalctl -xb` ile kök nedeni buldum: 10. fazdan (Depolama Yönetimi) kalma bir loop device mount girdisi hâlâ `/etc/fstab`'daydı — loop device'lar kalıcı olmadığı için VM her yeniden başladığında sistem olmayan bir UUID'yi bağlamaya çalışıp tüm boot sürecini kilitliyordu. `fstab`'dan temizleyip sistemi kurtardıktan sonra asıl Git senaryosuna devam ettim: aynı README.md'yi hem yerelde hem GitHub'da değiştirip gerçek bir push reddi ve merge çakışması yaşadım, elle çözdüm, ve GitHub'ın artık şifre değil Personal Access Token istediğini ilk elden öğrendim._
+
+- **Görevler & Hedefler:**
+  - `git checkout -b test-branch` ile branch oluşturuldu, `main`'in aslında `master` olduğu keşfedildi.
+  - Branch izolasyonu gerçek dosya testiyle kanıtlandı, `git merge` ile fast-forward birleştirme yapıldı.
+  - Ayrı bir test reposu (`git-test-lab`) oluşturulup clone edildi.
+  - `git clone` sırasında internet tamamen kesildi — `NetworkManager` servisinin çöktüğü, ardından VM'in emergency mode'a düştüğü tespit edildi.
+  - `journalctl -xb` ile kök neden bulundu: 10. fazdan kalma bir loop device `/etc/fstab` girdisi boot'u kilitliyordu — `sed` ile temizlenip sistem kurtarıldı.
+  - Aynı `README.md` hem VM'de hem GitHub web arayüzünden bağımsız değiştirilip gerçek bir `git push` reddi tetiklendi.
+  - `git config pull.rebase false` ile pull stratejisi belirlendi, gerçek bir merge çakışması elle çözüldü.
+  - GitHub Personal Access Token oluşturulup `git remote set-url` ile kimlik doğrulaması tamamlandı, push başarıyla gerçekleşti.
+- **Kilometre Taşları & Çıktılar:**
+  - 🔧 Git Notları: [16-Linux-Git-Basics](./16-Linux-Git-Basics/readme.md)
 
 ---
 
