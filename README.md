@@ -4,11 +4,11 @@ Bu repo, Linux ve DevOps temellerini öğrenirken tuttuğum günlük notları be
 
 ## 📍 Şu An Neredeyim
 
-Git — Branch, Merge ve Push Çakışması fazını tamamladım. `git checkout -b` ile branch oluşturup izolasyonu kanıtladım, sonra `git merge` ile fast-forward birleştirme yaptım. Ardından gerçek bir push çakışması senaryosu kurdum: aynı README.md'yi hem VM'de hem GitHub web arayüzünden bağımsız değiştirip `git push`'un reddedilmesini, `git pull`'un modern Git'te stratejinin açıkça belirtilmesini istemesini, ve gerçek bir merge çakışmasını elle çözdüm — sonunda GitHub'ın artık düz şifre değil, Personal Access Token istediğini de deneyimledim. Bunun ortasında hiç beklenmedik bir kriz yaşadım: `git clone` denerken VM'in interneti tamamen kesildi, teşhis sonunda 10. fazdan kalma bir loop device mount girdisinin `/etc/fstab`'da unutulduğunu ve VM'i her yeniden başlatmada tüm sistemi "emergency mode"a düşürdüğünü keşfettim — `fstab`'dan temizleyip sistemi kurtardım.
+Mini Proje fazını (Faz 17) tamamladım: gerçek kiralık bir sunucu yerine WSL2 üzerinde Ubuntu 26.04 kurup, ayrı bir sudo kullanıcısı (`egeadmin`), SSH anahtar tabanlı erişim, Nginx ve Docker'ı sıfırdan tek bir ortamda bir araya getirdim. Kendi bu reponuzdaki bir `index.html` sayfasını `git clone` ile sunucuya çekip Nginx üzerinden yayınladım. Süreçte üç gerçek hatayla karşılaştım: yanlış yazılmış bir gizli klasör yolu (`~/ssh.` yerine `~/.ssh`), `su -` komutunda unutulan bir boşluk (`-egeadmin` bir seçenek sanıldı), ve en öğreticisi — `git clone`'u Windows dosya sisteminde (`/mnt/c/WINDOWS/system32`) çalıştırınca alınan `chmod ... Operation not permitted` hatası, çözümü Linux native ev dizinine geçmekti.
 
-Bundan önce, Cron & Otomasyon fazını tamamladım. 14. fazdaki disk kullanım scriptini `crontab` ile her gece 02:00'de çalışacak şekilde zamanladım ve iki gerçek hatayla karşılaştım: `vi`'de uzun bir crontab satırının görsel olarak sarılıp aslında ikiye bölünmesi yüzünden `bad minute` hatası aldım, ve script içine eklediğim bir `sudo` komutunun, cron'un terminal'siz çalışma bağlamında "a password is required" hatasıyla sessizce başarısız olduğunu `at` ile simüle ederek bizzat gördüm. İkinci sorunu, geniş yetki vermek yerine `visudo` ile sadece o tek komuta özel dar kapsamlı bir `NOPASSWD` kuralıyla çözdüm.
+Bundan önce, Git — Branch, Merge ve Push Çakışması fazını tamamladım. `git checkout -b` ile branch oluşturup izolasyonu kanıtladım, sonra `git merge` ile fast-forward birleştirme yaptım. Ardından gerçek bir push çakışması senaryosu kurdum: aynı README.md'yi hem VM'de hem GitHub web arayüzünden bağımsız değiştirip `git push`'un reddedilmesini, `git pull`'un modern Git'te stratejinin açıkça belirtilmesini istemesini, ve gerçek bir merge çakışmasını elle çözdüm — sonunda GitHub'ın artık düz şifre değil, Personal Access Token istediğini de deneyimledim. Bunun ortasında hiç beklenmedik bir kriz yaşadım: `git clone` denerken VM'in interneti tamamen kesildi, teşhis sonunda 10. fazdan kalma bir loop device mount girdisinin `/etc/fstab`'da unutulduğunu ve VM'i her yeniden başlatmada tüm sistemi "emergency mode"a düşürdüğünü keşfettim — `fstab`'dan temizleyip sistemi kurtardım.
 
-Ondan önce, Bash Scripting fazında Linux üzerinde disk kullanımını otomatik kontrol eden bir script geliştirdim. `df`, `awk` ve `tr` komutlarını pipeline içerisinde kullanarak disk kullanım yüzdesini aldım ve `if/else` ile `%80` eşik kontrolü oluşturdum.
+Ondan önce, Cron & Otomasyon fazını tamamladım. 14. fazdaki disk kullanım scriptini `crontab` ile her gece 02:00'de çalışacak şekilde zamanladım ve iki gerçek hatayla karşılaştım: `vi`'de uzun bir crontab satırının görsel olarak sarılıp aslında ikiye bölünmesi yüzünden `bad minute` hatası aldım, ve script içine eklediğim bir `sudo` komutunun, cron'un terminal'siz çalışma bağlamında "a password is required" hatasıyla sessizce başarısız olduğunu `at` ile simüle ederek bizzat gördüm. İkinci sorunu, geniş yetki vermek yerine `visudo` ile sadece o tek komuta özel dar kapsamlı bir `NOPASSWD` kuralıyla çözdüm.
 
 Sırada CI/CD ve Konteynerizasyon fazları var.
 
@@ -34,6 +34,7 @@ Sırada CI/CD ve Konteynerizasyon fazları var.
 - [14-Linux-Bash-Scripting](./14-Linux-Bash-Scripting/): Bash ile disk kullanımını kontrol eden `disk_check.sh` scripti, `df`/`awk`/`tr` pipeline'ı, `%80` eşik kontrolü ve Git ile versiyonlama.
 - [15-Linux-Cron-Automation](./15-Linux-Cron-Automation/): `disk_check.sh`'ı `crontab` ile zamanlama, `vi`'de bölünen satırdan kaynaklı `bad minute` hatası, cron/at bağlamında terminal'siz `sudo` başarısızlığı ve dar kapsamlı `sudoers` çözümü, Nginx `logrotate` config'ine bakış.
 - [16-Linux-Git-Basics](./16-Linux-Git-Basics/): `git branch`/`git merge` ile fast-forward birleştirme, gerçek bir push çakışması ve merge çakışması çözümü, GitHub Personal Access Token ile kimlik doğrulama, ve bir `/etc/fstab` girdisinin sebep olduğu emergency mode krizinin çözümü.
+- [17-Mini-Project](./17-Mini-Project/): WSL2/Ubuntu üzerinde sıfırdan sunucu kurulumu — ayrı sudo kullanıcısı, SSH anahtar tabanlı erişim, Nginx, Docker ve Git'in bir arada kullanımı; kendi repodaki bir sayfanın `git clone` + `cp` ile canlıya alınması.
 
 ---
 
@@ -250,6 +251,22 @@ _Bu faz, planlanandan çok daha zengin geçti. Branch/merge kısmı sorunsuzdu, 
 - **Kilometre Taşları & Çıktılar:**
   - 🔧 Git Notları: [16-Linux-Git-Basics](./16-Linux-Git-Basics/readme.md)
 
+### 🔹 Gün 16 | Mini Proje: Nginx, Docker, Git & SSH Bir Arada
+
+_Kaynak müfredat bu fazı gerçek kiralık bir sunucuda anlatıyordu; elimde kiralık sunucu olmadığı için ortamı WSL2 üzerinde Ubuntu 26.04 ile simüle ettim (WSL, Windows'un arkasında NAT'landığı için gerçek bir public IP deneyimi yaşanmadı, bunun yerine yerel IP üzerinden test edildi). Üç gerçek hatayla karşılaştım: `~/ssh.` yazıp `~/.ssh` demek istediğimi fark etmemek, `sudo su -egeadmin` yazınca `-` ile kullanıcı adı arasında boşluk unutup sistemin bunu geçersiz bir seçenek sanması, ve en öğreticisi — `git clone`'u yanlışlıkla Windows dosya sisteminde (`/mnt/c/WINDOWS/system32`) çalıştırınca alınan `chmod ... Operation not permitted` hatası. Kaynak repodaki hazır sayfa yerine, kendi bu journal reponun içine bir `17-Mini-Project/index.html` ekleyip onu sunucuya klonlayıp yayınladım — böylece "canlıya alınan" içerik kendi projeme ait oldu._
+
+- **Görevler & Hedefler:**
+  - Windows üzerinde WSL2 + Ubuntu 26.04 sıfırdan kuruldu.
+  - En Düşük Yetki Prensibi doğrultusunda ayrı bir sudo kullanıcısı (`egeadmin`) oluşturuldu ve doğrulandı.
+  - `egeadmin` için SSH anahtar tabanlı erişim kuruldu (Windows tarafındaki mevcut `id_ed25519` anahtar çifti kullanıldı), `openssh-server` kurulup etkinleştirildi.
+  - Windows PowerShell'den WSL'e şifresiz SSH bağlantısı doğrulandı.
+  - Nginx kuruldu, `curl localhost` ve tarayıcı üzerinden doğrulandı.
+  - Docker, resmi Ubuntu kurulum adımlarıyla (`.sources` formatı) kuruldu ve `hello-world` ile doğrulandı.
+  - Git kurulup bu repo (`devops-learning-journal`) sunucuya klonlandı.
+  - `17-Mini-Project/index.html`, `cp` ile Nginx'in servis ettiği `/var/www/html/index.html` konumuna kopyalanıp canlıya alındı.
+- **Kilometre Taşları & Çıktılar:**
+  - 🚀 Mini Proje Notları: [17-Mini-Project](./17-Mini-Project/readme.md)
+
 ---
 
 ## 🛠️ Ortam
@@ -258,6 +275,7 @@ _Bu faz, planlanandan çok daha zengin geçti. Branch/merge kısmı sorunsuzdu, 
 - **Guest OS:** Rocky Linux 10.2 (Red Quartz)
 - **VM Kaynakları:** 4096 MB RAM, 4 vCPU, 20 GB Disk
 - **Klavye Düzeni:** Türkçe (TR)
+- **Ek Ortam (Faz 17):** WSL2 üzerinde Ubuntu 26.04 LTS (gerçek kiralık sunucu simülasyonu için)
 
 ---
 
