@@ -4,11 +4,11 @@ Bu repo, Linux ve DevOps temellerini öğrenirken tuttuğum günlük notları be
 
 ## 📍 Şu An Neredeyim
 
-Mini Proje fazını (Faz 17) tamamladım: gerçek kiralık bir sunucu yerine WSL2 üzerinde Ubuntu 26.04 kurup, ayrı bir sudo kullanıcısı (`egeadmin`), SSH anahtar tabanlı erişim, Nginx ve Docker'ı sıfırdan tek bir ortamda bir araya getirdim. Kendi bu reponuzdaki bir `index.html` sayfasını `git clone` ile sunucuya çekip Nginx üzerinden yayınladım. Süreçte üç gerçek hatayla karşılaştım: yanlış yazılmış bir gizli klasör yolu (`~/ssh.` yerine `~/.ssh`), `su -` komutunda unutulan bir boşluk (`-egeadmin` bir seçenek sanıldı), ve en öğreticisi — `git clone`'u Windows dosya sisteminde (`/mnt/c/WINDOWS/system32`) çalıştırınca alınan `chmod ... Operation not permitted` hatası, çözümü Linux native ev dizinine geçmekti.
+OSI Modeli fazını (Faz 18) tamamladım: 7 katmanı sadece teorik olarak değil, gerçek komutlar ve gerçek paket yakalamalarıyla çalıştım. `tcpdump` ile gerçek bir DNS sorgusunu paket seviyesinde yakaladım (Layer 3/4 header'larını doğrudan gördüm), 4 farklı gerçek hedefe (Cloudflare, Claude.ai, Google, Türkiye Sigorta) `traceroute`/`ping` çalıştırıp ICMP politikalarındaki gerçek farkları karşılaştırdım, `ip route` ile gerçek bir routing tablosunu satır satır yorumladım, ve `dig` ile DNS çözümlemesini inceledim. Süreçte 6 gerçek hatayla karşılaştım — en öğreticisi, `tcpdump -i eth0` ile hiç paket yakalanamaması (WSL2'nin dahili DNS proxy'sinin trafiği `lo` arayüzünden geçirmesi yüzünden), çözümü `-i any` kullanmaktı. Ayrıca `dig +trace`'in WSL2'nin DNS mimarisiyle uyumsuz olduğunu keşfettim (root nameserver'lara doğrudan ulaşamıyor).
 
-Bundan önce, Git — Branch, Merge ve Push Çakışması fazını tamamladım. `git checkout -b` ile branch oluşturup izolasyonu kanıtladım, sonra `git merge` ile fast-forward birleştirme yaptım. Ardından gerçek bir push çakışması senaryosu kurdum: aynı README.md'yi hem VM'de hem GitHub web arayüzünden bağımsız değiştirip `git push`'un reddedilmesini, `git pull`'un modern Git'te stratejinin açıkça belirtilmesini istemesini, ve gerçek bir merge çakışmasını elle çözdüm — sonunda GitHub'ın artık düz şifre değil, Personal Access Token istediğini de deneyimledim. Bunun ortasında hiç beklenmedik bir kriz yaşadım: `git clone` denerken VM'in interneti tamamen kesildi, teşhis sonunda 10. fazdan kalma bir loop device mount girdisinin `/etc/fstab`'da unutulduğunu ve VM'i her yeniden başlatmada tüm sistemi "emergency mode"a düşürdüğünü keşfettim — `fstab`'dan temizleyip sistemi kurtardım.
+Bundan önce, Mini Proje fazını (Faz 17) tamamladım: gerçek kiralık bir sunucu yerine WSL2 üzerinde Ubuntu 26.04 kurup, ayrı bir sudo kullanıcısı (`egeadmin`), SSH anahtar tabanlı erişim, Nginx ve Docker'ı sıfırdan tek bir ortamda bir araya getirdim. Kendi bu reponuzdaki bir `index.html` sayfasını `git clone` ile sunucuya çekip Nginx üzerinden yayınladım. Süreçte üç gerçek hatayla karşılaştım: yanlış yazılmış bir gizli klasör yolu (`~/ssh.` yerine `~/.ssh`), `su -` komutunda unutulan bir boşluk (`-egeadmin` bir seçenek sanıldı), ve en öğreticisi — `git clone`'u Windows dosya sisteminde (`/mnt/c/WINDOWS/system32`) çalıştırınca alınan `chmod ... Operation not permitted` hatası, çözümü Linux native ev dizinine geçmekti.
 
-Ondan önce, Cron & Otomasyon fazını tamamladım. 14. fazdaki disk kullanım scriptini `crontab` ile her gece 02:00'de çalışacak şekilde zamanladım ve iki gerçek hatayla karşılaştım: `vi`'de uzun bir crontab satırının görsel olarak sarılıp aslında ikiye bölünmesi yüzünden `bad minute` hatası aldım, ve script içine eklediğim bir `sudo` komutunun, cron'un terminal'siz çalışma bağlamında "a password is required" hatasıyla sessizce başarısız olduğunu `at` ile simüle ederek bizzat gördüm. İkinci sorunu, geniş yetki vermek yerine `visudo` ile sadece o tek komuta özel dar kapsamlı bir `NOPASSWD` kuralıyla çözdüm.
+Ondan önce, Git — Branch, Merge ve Push Çakışması fazını tamamladım. `git checkout -b` ile branch oluşturup izolasyonu kanıtladım, sonra `git merge` ile fast-forward birleştirme yaptım. Ardından gerçek bir push çakışması senaryosu kurdum: aynı README.md'yi hem VM'de hem GitHub web arayüzünden bağımsız değiştirip `git push`'un reddedilmesini, `git pull`'un modern Git'te stratejinin açıkça belirtilmesini istemesini, ve gerçek bir merge çakışmasını elle çözdüm — sonunda GitHub'ın artık düz şifre değil, Personal Access Token istediğini de deneyimledim. Bunun ortasında hiç beklenmedik bir kriz yaşadım: `git clone` denerken VM'in interneti tamamen kesildi, teşhis sonunda 10. fazdan kalma bir loop device mount girdisinin `/etc/fstab`'da unutulduğunu ve VM'i her yeniden başlatmada tüm sistemi "emergency mode"a düşürdüğünü keşfettim — `fstab`'dan temizleyip sistemi kurtardım.
 
 Sırada CI/CD ve Konteynerizasyon fazları var.
 
@@ -35,6 +35,7 @@ Sırada CI/CD ve Konteynerizasyon fazları var.
 - [15-Linux-Cron-Automation](./15-Linux-Cron-Automation/): `disk_check.sh`'ı `crontab` ile zamanlama, `vi`'de bölünen satırdan kaynaklı `bad minute` hatası, cron/at bağlamında terminal'siz `sudo` başarısızlığı ve dar kapsamlı `sudoers` çözümü, Nginx `logrotate` config'ine bakış.
 - [16-Linux-Git-Basics](./16-Linux-Git-Basics/): `git branch`/`git merge` ile fast-forward birleştirme, gerçek bir push çakışması ve merge çakışması çözümü, GitHub Personal Access Token ile kimlik doğrulama, ve bir `/etc/fstab` girdisinin sebep olduğu emergency mode krizinin çözümü.
 - [17-Mini-Project](./17-Mini-Project/): WSL2/Ubuntu üzerinde sıfırdan sunucu kurulumu — ayrı sudo kullanıcısı, SSH anahtar tabanlı erişim, Nginx, Docker ve Git'in bir arada kullanımı; kendi repodaki bir sayfanın `git clone` + `cp` ile canlıya alınması.
+- [18-OSI-Model](./18-OSI-Model/): OSI'nin 7 katmanı, `tcpdump` ile gerçek DNS paket yakalama, `traceroute`/`ping` ile 4 farklı sağlayıcı arasında ICMP politika karşılaştırması, `ip route` ile routing tablosu okuma, IP forwarding ve Docker ilişkisi, `dig` ile DNS çözümleme.
 
 ---
 
@@ -267,6 +268,19 @@ _Kaynak müfredat bu fazı gerçek kiralık bir sunucuda anlatıyordu; elimde ki
 - **Kilometre Taşları & Çıktılar:**
   - 🚀 Mini Proje Notları: [17-Mini-Project](./17-Mini-Project/readme.md)
 
+### 🔹 Gün 17 | OSI Modeli: Katmanlar, Gerçek Senaryolar, Gerçek Paket Doğrulaması
+
+_Bu fazı, sadece kavramları okuyarak değil, her katmanı gerçek bir komutla doğrulayarak işledim. `tcpdump` ile bir DNS sorgusunu paket seviyesinde yakalamaya çalışırken WSL2'ye özgü bir sürprizle karşılaştım: `-i eth0` ile hiç paket gelmedi, çünkü WSL2'nin dahili DNS proxy'si (`10.255.255.254`) trafiği `lo` (loopback) arayüzünden geçiriyor — `-i any` ile çözdüm. Ardından `traceroute`/`ping` ile 4 gerçek hedefi (Cloudflare, Claude.ai, Google, Türkiye Sigorta) karşılaştırdım: Cloudflare ve Claude.ai (ikisi de Cloudflare altyapısında) sorunsuz tamamlandı; Google'ın `ping`'i tam açıkken `traceroute`'u kısmen kısıtlıydı (kaynak metinden farklı olarak tamamen değil); Türkiye Sigorta ise hem `ping`'i hem `traceroute`'u tamamen kapatmış — ICMP'yi bütünüyle engelliyor. `ip route` ile gerçek bir routing tablosu okudum ve `ip_forward`'ın `1` (açık) olmasının rastgele değil, Docker'ın kurulu olmasının doğrudan bir sonucu olduğunu doğruladım. Son olarak `dig +trace`'in WSL2'nin DNS mimarisiyle uyumsuz olduğunu keşfettim (root nameserver'lara ulaşamıyor), ama normal `dig` sorgusu sorunsuz çalıştı._
+
+- **Görevler & Hedefler:**
+  - `tcpdump` ile bir `dig google.com` sorgusunun ürettiği gerçek DNS paketleri (sorgu + cevap) yakalanıp analiz edildi, Layer 3 (IP)/Layer 4 (UDP/port 53) header bilgileri doğrulandı.
+  - `traceroute -m N` ve `ping -c 4` ile 4 farklı gerçek hedefe (1.1.1.1, claude.ai, google.com, turkiyesigorta.com.tr) test yapılıp ICMP politika farkları karşılaştırıldı.
+  - `ip route` ile gerçek routing tablosu satır satır yorumlandı (default gateway, docker0 ağı, yerel ağ aralığı).
+  - `cat /proc/sys/net/ipv4/ip_forward` ile IP forwarding durumu kontrol edildi, Docker ile ilişkisi doğrulandı.
+  - `dig +trace google.com` denendi (WSL2 mimarisiyle uyumsuz olduğu görüldü), `dig google.com` ile normal DNS çözümlemesi doğrulandı.
+- **Kilometre Taşları & Çıktılar:**
+  - 🌐 OSI Modeli Notları: [18-OSI-Model](./18-OSI-Model/readme.md)
+
 ---
 
 ## 🛠️ Ortam
@@ -275,7 +289,7 @@ _Kaynak müfredat bu fazı gerçek kiralık bir sunucuda anlatıyordu; elimde ki
 - **Guest OS:** Rocky Linux 10.2 (Red Quartz)
 - **VM Kaynakları:** 4096 MB RAM, 4 vCPU, 20 GB Disk
 - **Klavye Düzeni:** Türkçe (TR)
-- **Ek Ortam (Faz 17):** WSL2 üzerinde Ubuntu 26.04 LTS (gerçek kiralık sunucu simülasyonu için)
+- **Ek Ortam (Faz 17-18):** WSL2 üzerinde Ubuntu 26.04 LTS (gerçek kiralık sunucu simülasyonu için)
 
 ---
 
