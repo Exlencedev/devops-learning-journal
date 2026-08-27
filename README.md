@@ -4,11 +4,11 @@ Bu repo, Linux ve DevOps temellerini öğrenirken tuttuğum günlük notları be
 
 ## 📍 Şu An Neredeyim
 
-Nginx Derinleşme fazını (Faz 19) tamamladım: reverse proxy kurulumu, path bazlı yönlendirme, path rewrite, path engelleme (`deny`/`allow`), ve Squid ile forward proxy — hepsi gerçek testlerle doğrulandı. 6 gerçek hatayla karşılaştım; en öğreticileri: `deny all` eklendikten sonra `reload`'un değişikliği yansıtmaması (`restart` ile çözüldü), `allow 127.0.0.1`'in `localhost` isteğini engellemesi (çünkü `localhost` bu sistemde IPv6/`::1` üzerinden çözümleniyordu, `allow ::1` eklenince düzeldi), ve Squid'in `http_access allow all` kuralının dosyanın yanlış yerine eklenmesi yüzünden etkisiz kalması. Forward proxy testinde ilginç bir WSL2'ye özgü sınırlama da keşfettim: Squid gerçekten çalışıp trafiği tünellemesine rağmen (log'larla kanıtlandı), dışarıdan bakan bir servis (`ifconfig.me`) hâlâ benim gerçek IP'mi gördü — muhtemelen WSL2'nin kendisinin zaten Windows'un arkasında NAT'lı olmasından kaynaklanan bir "çift NAT" durumu.
+Nginx: Rate Limiting ve Load Balancing fazını (Faz 20) tamamladım: `limit_req_zone`/`limit_req` ile IP bazlı istek sınırlama, ve `upstream` ile iki backend arasında round-robin dağıtım + otomatik failover kurup gerçek testlerle doğruladım. Süreçte üç gerçek hatayla karşılaştım — hepsi de önceki fazlardan kalan arka plan süreçlerinin (backend simülasyonları) sessizce ölmüş olmasından kaynaklandı: round-robin testinde önce sadece bir backend'e trafik gitti (diğer instance hiç çalışmıyordu), rate limiting testinde ilk denemede beklenen 200'ler yerine 502 alındı (asıl backend port 8080 çalışmıyordu). Bu, uzun süren çok fazlı bir çalışmada `ss -tlnp` ile port durumunu düzenli kontrol etmenin önemini gösterdi. Failover testinde ise (Instance 1'i `kill` ile kapatma) `upstream` bloğunun trafiği hiç kesintisiz olarak sağlıklı backend'e kaydırdığı net bir şekilde doğrulandı.
 
-Bundan önce, OSI Modeli fazını (Faz 18) tamamladım: 7 katmanı sadece teorik olarak değil, gerçek komutlar ve gerçek paket yakalamalarıyla çalıştım. `tcpdump` ile gerçek bir DNS sorgusunu paket seviyesinde yakaladım (Layer 3/4 header'larını doğrudan gördüm), 4 farklı gerçek hedefe (Cloudflare, Claude.ai, Google, Türkiye Sigorta) `traceroute`/`ping` çalıştırıp ICMP politikalarındaki gerçek farkları karşılaştırdım, `ip route` ile gerçek bir routing tablosunu satır satır yorumladım, ve `dig` ile DNS çözümlemesini inceledim. Süreçte 6 gerçek hatayla karşılaştım — en öğreticisi, `tcpdump -i eth0` ile hiç paket yakalanamaması (WSL2'nin dahili DNS proxy'sinin trafiği `lo` arayüzünden geçirmesi yüzünden), çözümü `-i any` kullanmaktı. Ayrıca `dig +trace`'in WSL2'nin DNS mimarisiyle uyumsuz olduğunu keşfettim (root nameserver'lara doğrudan ulaşamıyor).
+Bundan önce, Nginx Derinleşme fazını (Faz 19) tamamladım: reverse proxy kurulumu, path bazlı yönlendirme, path rewrite, path engelleme (`deny`/`allow`), ve Squid ile forward proxy — hepsi gerçek testlerle doğrulandı. 6 gerçek hatayla karşılaştım; en öğreticileri: `deny all` eklendikten sonra `reload`'un değişikliği yansıtmaması (`restart` ile çözüldü), `allow 127.0.0.1`'in `localhost` isteğini engellemesi (çünkü `localhost` bu sistemde IPv6/`::1` üzerinden çözümleniyordu, `allow ::1` eklenince düzeldi), ve Squid'in `http_access allow all` kuralının dosyanın yanlış yerine eklenmesi yüzünden etkisiz kalması. Forward proxy testinde ilginç bir WSL2'ye özgü sınırlama da keşfettim: Squid gerçekten çalışıp trafiği tünellemesine rağmen (log'larla kanıtlandı), dışarıdan bakan bir servis (`ifconfig.me`) hâlâ benim gerçek IP'mi gördü — muhtemelen WSL2'nin kendisinin zaten Windows'un arkasında NAT'lı olmasından kaynaklanan bir "çift NAT" durumu.
 
-Ondan önce, Mini Proje fazını (Faz 17) tamamladım: gerçek kiralık bir sunucu yerine WSL2 üzerinde Ubuntu 26.04 kurup, ayrı bir sudo kullanıcısı (`egeadmin`), SSH anahtar tabanlı erişim, Nginx ve Docker'ı sıfırdan tek bir ortamda bir araya getirdim. Kendi bu reponuzdaki bir `index.html` sayfasını `git clone` ile sunucuya çekip Nginx üzerinden yayınladım. Süreçte üç gerçek hatayla karşılaştım: yanlış yazılmış bir gizli klasör yolu (`~/ssh.` yerine `~/.ssh`), `su -` komutunda unutulan bir boşluk (`-egeadmin` bir seçenek sanıldı), ve en öğreticisi — `git clone`'u Windows dosya sisteminde (`/mnt/c/WINDOWS/system32`) çalıştırınca alınan `chmod ... Operation not permitted` hatası, çözümü Linux native ev dizinine geçmekti.
+Ondan önce, OSI Modeli fazını (Faz 18) tamamladım: 7 katmanı sadece teorik olarak değil, gerçek komutlar ve gerçek paket yakalamalarıyla çalıştım. `tcpdump` ile gerçek bir DNS sorgusunu paket seviyesinde yakaladım (Layer 3/4 header'larını doğrudan gördüm), 4 farklı gerçek hedefe (Cloudflare, Claude.ai, Google, Türkiye Sigorta) `traceroute`/`ping` çalıştırıp ICMP politikalarındaki gerçek farkları karşılaştırdım, `ip route` ile gerçek bir routing tablosunu satır satır yorumladım, ve `dig` ile DNS çözümlemesini inceledim. Süreçte 6 gerçek hatayla karşılaştım — en öğreticisi, `tcpdump -i eth0` ile hiç paket yakalanamaması (WSL2'nin dahili DNS proxy'sinin trafiği `lo` arayüzünden geçirmesi yüzünden), çözümü `-i any` kullanmaktı. Ayrıca `dig +trace`'in WSL2'nin DNS mimarisiyle uyumsuz olduğunu keşfettim (root nameserver'lara doğrudan ulaşamıyor).
 
 Sırada CI/CD ve Konteynerizasyon fazları var.
 
@@ -37,6 +37,7 @@ Sırada CI/CD ve Konteynerizasyon fazları var.
 - [17-Mini-Project](./17-Mini-Project/): WSL2/Ubuntu üzerinde sıfırdan sunucu kurulumu — ayrı sudo kullanıcısı, SSH anahtar tabanlı erişim, Nginx, Docker ve Git'in bir arada kullanımı; kendi repodaki bir sayfanın `git clone` + `cp` ile canlıya alınması.
 - [18-OSI-Model](./18-OSI-Model/): OSI'nin 7 katmanı, `tcpdump` ile gerçek DNS paket yakalama, `traceroute`/`ping` ile 4 farklı sağlayıcı arasında ICMP politika karşılaştırması, `ip route` ile routing tablosu okuma, IP forwarding ve Docker ilişkisi, `dig` ile DNS çözümleme.
 - [19-Nginx-Deep-Dive](./19-Nginx-Deep-Dive/): Nginx reverse proxy derinleşmesi — path bazlı yönlendirme, path rewrite (`proxy_pass` sonundaki `/` farkı), 301 redirect davranışı, `deny`/`allow` ile erişim kontrolü (IPv4/IPv6 farkı dahil), ve Squid ile forward proxy kurulumu.
+- [20-Rate-Limiting-Load-Balancing](./20-Rate-Limiting-Load-Balancing/): `limit_req_zone`/`limit_req` ile IP bazlı rate limiting, `upstream` bloğu ile round-robin load balancing, otomatik failover testi, `least_conn`/`ip_hash` alternatiflerine kavramsal bakış.
 
 ---
 
@@ -298,6 +299,21 @@ _Bu fazda Nginx'in reverse proxy yeteneklerinde derinleştim: temel proxy kurulu
 - **Kilometre Taşları & Çıktılar:**
   - 🔀 Nginx Derinleşme Notları: [19-Nginx-Deep-Dive](./19-Nginx-Deep-Dive/readme.md)
 
+### 🔹 Gün 19 | Nginx: Rate Limiting ve Load Balancing
+
+_19. fazdaki sunucu üzerine iki yeni yetenek ekledim: `limit_req_zone`/`limit_req` ile IP bazlı istek sınırlama, ve `upstream` bloğu ile iki backend arasında round-robin dağıtım + otomatik failover. Üç ayrı hatayla karşılaştım, hepsi de aynı kök nedene bağlıydı: önceki fazlardan kalan arka plan backend süreçlerinin (Python `http.server`) bir veya birden fazlası sessizce ölmüştü. Round-robin testinde önce sadece bir instance'a trafik gittiğini gördüm — `ss -tlnp` ile kontrol edince diğer instance'ın (port 3000) hiç çalışmadığını fark ettim. Yeniden başlatınca bu sefer tüm trafik tersi yöne (sadece 3000'e) gitti — isteklere `sleep 0.3` ekleyip yavaşlatınca gerçek round-robin davranışı gözlemlenebildi. Rate limiting testinde de benzer bir şey oldu: ilk 11 istek beklenen 200 yerine 502 döndürdü, çünkü ana backend (port 8080) da çalışmıyordu — bunu düzeltince test kaynak metindeki sonuca çok yakın bir şekilde (11× 200, sonra 503'ler) tamamlandı. En net kanıt failover testinde geldi: Instance 1'i `kill` ile kapattığımda, sonraki tüm istekler hiçbir hata vermeden, kesintisiz şekilde Instance 2'ye yönlendi._
+
+- **Görevler & Hedefler:**
+  - `limit_req_zone $binary_remote_addr zone=genel:10m rate=5r/s;` `nginx.conf`'un `http` bloğuna eklendi.
+  - `limit_req zone=genel burst=10 nodelay;` `/`, `/users/`, `/computers/` location'larına uygulandı.
+  - 20 art arda istek ile rate limiting test edildi — 11 istek geçti, sonrası 503 ile reddedildi.
+  - İkinci bir `users` backend instance'ı (port 3001) başlatılıp `upstream users_backend { server localhost:3000; server localhost:3001; }` bloğu tanımlandı.
+  - Round-robin dağılımı, isteklere küçük bir bekleme (`sleep 0.3`) eklenerek doğrulandı.
+  - Instance 1 (`kill $(lsof -t -i:3000)`) kapatılıp, trafiğin kesintisiz olarak Instance 2'ye kaydığı (failover) kanıtlandı.
+  - `least_conn` ve `ip_hash` alternatif load balancing yöntemleri kavramsal olarak incelendi (bu fazda uygulanmadı — backend'ler stateless olduğu için gerek duyulmadı).
+- **Kilometre Taşları & Çıktılar:**
+  - 🚦 Rate Limiting & Load Balancing Notları: [20-Rate-Limiting-Load-Balancing](./20-Rate-Limiting-Load-Balancing/readme.md)
+
 ---
 
 ## 🛠️ Ortam
@@ -306,7 +322,7 @@ _Bu fazda Nginx'in reverse proxy yeteneklerinde derinleştim: temel proxy kurulu
 - **Guest OS:** Rocky Linux 10.2 (Red Quartz)
 - **VM Kaynakları:** 4096 MB RAM, 4 vCPU, 20 GB Disk
 - **Klavye Düzeni:** Türkçe (TR)
-- **Ek Ortam (Faz 17-19):** WSL2 üzerinde Ubuntu 26.04 LTS (gerçek kiralık sunucu simülasyonu için)
+- **Ek Ortam (Faz 17-20):** WSL2 üzerinde Ubuntu 26.04 LTS (gerçek kiralık sunucu simülasyonu için)
 
 ---
 
