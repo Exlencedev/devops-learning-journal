@@ -4,11 +4,11 @@ Bu repo, Linux ve DevOps temellerini öğrenirken tuttuğum günlük notları be
 
 ## 📍 Şu An Neredeyim
 
-Nginx: Rate Limiting ve Load Balancing fazını (Faz 20) tamamladım: `limit_req_zone`/`limit_req` ile IP bazlı istek sınırlama, ve `upstream` ile iki backend arasında round-robin dağıtım + otomatik failover kurup gerçek testlerle doğruladım. Süreçte üç gerçek hatayla karşılaştım — hepsi de önceki fazlardan kalan arka plan süreçlerinin (backend simülasyonları) sessizce ölmüş olmasından kaynaklandı: round-robin testinde önce sadece bir backend'e trafik gitti (diğer instance hiç çalışmıyordu), rate limiting testinde ilk denemede beklenen 200'ler yerine 502 alındı (asıl backend port 8080 çalışmıyordu). Bu, uzun süren çok fazlı bir çalışmada `ss -tlnp` ile port durumunu düzenli kontrol etmenin önemini gösterdi. Failover testinde ise (Instance 1'i `kill` ile kapatma) `upstream` bloğunun trafiği hiç kesintisiz olarak sağlıklı backend'e kaydırdığı net bir şekilde doğrulandı.
+OpenResty fazını (Faz 21) tamamladım: token korumalı bir API kurup, Lua ile PostgreSQL, MySQL ve Redis'e bağlanan 3 ayrı endpoint oluşturdum — hepsi Docker Compose ile tek seferde ayağa kaldırıldı. `pgmoon` kütüphanesi resmi paket yöneticileriyle kurulamadığı için Dockerfile'da doğrudan GitHub'dan klonlandı; bu, ilk denemede sorunsuz çalıştı. Tek karşılaşılan engel basit bir izin meselesiydi (`docker compose` komutu `sudo` gerektirdi, çünkü kullanıcı `docker` grubunda değildi). Token kontrolü, PostgreSQL/MySQL sorguları ve Redis cache mantığı (ilk istekte oluşturma, ikinci istekte cache'ten okuma) hepsi beklenen şekilde çalıştı.
 
-Bundan önce, Nginx Derinleşme fazını (Faz 19) tamamladım: reverse proxy kurulumu, path bazlı yönlendirme, path rewrite, path engelleme (`deny`/`allow`), ve Squid ile forward proxy — hepsi gerçek testlerle doğrulandı. 6 gerçek hatayla karşılaştım; en öğreticileri: `deny all` eklendikten sonra `reload`'un değişikliği yansıtmaması (`restart` ile çözüldü), `allow 127.0.0.1`'in `localhost` isteğini engellemesi (çünkü `localhost` bu sistemde IPv6/`::1` üzerinden çözümleniyordu, `allow ::1` eklenince düzeldi), ve Squid'in `http_access allow all` kuralının dosyanın yanlış yerine eklenmesi yüzünden etkisiz kalması. Forward proxy testinde ilginç bir WSL2'ye özgü sınırlama da keşfettim: Squid gerçekten çalışıp trafiği tünellemesine rağmen (log'larla kanıtlandı), dışarıdan bakan bir servis (`ifconfig.me`) hâlâ benim gerçek IP'mi gördü — muhtemelen WSL2'nin kendisinin zaten Windows'un arkasında NAT'lı olmasından kaynaklanan bir "çift NAT" durumu.
+Bundan önce, Nginx: Rate Limiting ve Load Balancing fazını (Faz 20) tamamladım: `limit_req_zone`/`limit_req` ile IP bazlı istek sınırlama, ve `upstream` ile iki backend arasında round-robin dağıtım + otomatik failover kurup gerçek testlerle doğruladım. Süreçte üç gerçek hatayla karşılaştım — hepsi de önceki fazlardan kalan arka plan süreçlerinin (backend simülasyonları) sessizce ölmüş olmasından kaynaklandı: round-robin testinde önce sadece bir backend'e trafik gitti (diğer instance hiç çalışmıyordu), rate limiting testinde ilk denemede beklenen 200'ler yerine 502 alındı (asıl backend port 8080 çalışmıyordu). Bu, uzun süren çok fazlı bir çalışmada `ss -tlnp` ile port durumunu düzenli kontrol etmenin önemini gösterdi. Failover testinde ise (Instance 1'i `kill` ile kapatma) `upstream` bloğunun trafiği hiç kesintisiz olarak sağlıklı backend'e kaydırdığı net bir şekilde doğrulandı.
 
-Ondan önce, OSI Modeli fazını (Faz 18) tamamladım: 7 katmanı sadece teorik olarak değil, gerçek komutlar ve gerçek paket yakalamalarıyla çalıştım. `tcpdump` ile gerçek bir DNS sorgusunu paket seviyesinde yakaladım (Layer 3/4 header'larını doğrudan gördüm), 4 farklı gerçek hedefe (Cloudflare, Claude.ai, Google, Türkiye Sigorta) `traceroute`/`ping` çalıştırıp ICMP politikalarındaki gerçek farkları karşılaştırdım, `ip route` ile gerçek bir routing tablosunu satır satır yorumladım, ve `dig` ile DNS çözümlemesini inceledim. Süreçte 6 gerçek hatayla karşılaştım — en öğreticisi, `tcpdump -i eth0` ile hiç paket yakalanamaması (WSL2'nin dahili DNS proxy'sinin trafiği `lo` arayüzünden geçirmesi yüzünden), çözümü `-i any` kullanmaktı. Ayrıca `dig +trace`'in WSL2'nin DNS mimarisiyle uyumsuz olduğunu keşfettim (root nameserver'lara doğrudan ulaşamıyor).
+Ondan önce, Nginx Derinleşme fazını (Faz 19) tamamladım: reverse proxy kurulumu, path bazlı yönlendirme, path rewrite, path engelleme (`deny`/`allow`), ve Squid ile forward proxy — hepsi gerçek testlerle doğrulandı. 6 gerçek hatayla karşılaştım; en öğreticileri: `deny all` eklendikten sonra `reload`'un değişikliği yansıtmaması (`restart` ile çözüldü), `allow 127.0.0.1`'in `localhost` isteğini engellemesi (çünkü `localhost` bu sistemde IPv6/`::1` üzerinden çözümleniyordu, `allow ::1` eklenince düzeldi), ve Squid'in `http_access allow all` kuralının dosyanın yanlış yerine eklenmesi yüzünden etkisiz kalması.
 
 Sırada CI/CD ve Konteynerizasyon fazları var.
 
@@ -38,6 +38,7 @@ Sırada CI/CD ve Konteynerizasyon fazları var.
 - [18-OSI-Model](./18-OSI-Model/): OSI'nin 7 katmanı, `tcpdump` ile gerçek DNS paket yakalama, `traceroute`/`ping` ile 4 farklı sağlayıcı arasında ICMP politika karşılaştırması, `ip route` ile routing tablosu okuma, IP forwarding ve Docker ilişkisi, `dig` ile DNS çözümleme.
 - [19-Nginx-Deep-Dive](./19-Nginx-Deep-Dive/): Nginx reverse proxy derinleşmesi — path bazlı yönlendirme, path rewrite (`proxy_pass` sonundaki `/` farkı), 301 redirect davranışı, `deny`/`allow` ile erişim kontrolü (IPv4/IPv6 farkı dahil), ve Squid ile forward proxy kurulumu.
 - [20-Rate-Limiting-Load-Balancing](./20-Rate-Limiting-Load-Balancing/): `limit_req_zone`/`limit_req` ile IP bazlı rate limiting, `upstream` bloğu ile round-robin load balancing, otomatik failover testi, `least_conn`/`ip_hash` alternatiflerine kavramsal bakış.
+- [21-OpenResty](./21-OpenResty/): Lua gömülü Nginx (OpenResty) ile token authentication, `pgmoon` ile PostgreSQL, `resty.mysql` ile MySQL, `resty.redis` ile cache — 4 servisin (openresty, postgres, mysql, redis) Docker Compose ile birlikte orkestrasyonu.
 
 ---
 
@@ -314,6 +315,21 @@ _19. fazdaki sunucu üzerine iki yeni yetenek ekledim: `limit_req_zone`/`limit_r
 - **Kilometre Taşları & Çıktılar:**
   - 🚦 Rate Limiting & Load Balancing Notları: [20-Rate-Limiting-Load-Balancing](./20-Rate-Limiting-Load-Balancing/readme.md)
 
+### 🔹 Gün 20 | OpenResty: Token Authentication, PostgreSQL, MySQL, Redis
+
+_Bu fazda Nginx'in ötesine geçip OpenResty ile Lua kodu çalıştıran bir API kurdum. Dört servisi (OpenResty, PostgreSQL, MySQL, Redis) tek bir `docker-compose.yml` ile tanımlayıp `docker compose up -d` ile hepsini birden ayağa kaldırdım. `pgmoon` kütüphanesi Alpine'ın paket yöneticileriyle kurulamadığı için Dockerfile içinde doğrudan GitHub'dan clone edildi — bu adım ilk denemede sorunsuz çalıştı. Tek karşılaşılan engel `docker compose up` öncesi "permission denied" hatasıydı (kullanıcı `docker` grubunda değildi, `sudo` ile çözüldü). Dosyaları oluştururken bir tanesinde (`cache.lua`) `cat` çıktısında fazladan bir `,` karakteri gördüm ama `xxd` ile dosyanın ham baytlarını kontrol edince bunun sadece bir terminal görüntüleme sorunu olduğunu, gerçek dosyanın temiz olduğunu doğruladım. Token kontrolü (401), PostgreSQL sorgusu (Türkçe karakter dahil), MySQL sorgusu, ve Redis cache mantığı (ilk istekte oluşturma, ikincisinde cache'ten okuma) hepsi ilk seferde beklendiği gibi çalıştı._
+
+- **Görevler & Hedefler:**
+  - `openresty-demo/` proje yapısı oluşturuldu: `docker-compose.yml`, `Dockerfile`, `nginx.conf`, `lua/` (4 dosya), `init/` (2 SQL dosyası).
+  - `Dockerfile` ile `pgmoon` kütüphanesi GitHub'dan clone edilip OpenResty image'ına eklendi.
+  - `nginx.conf`'a `resolver 127.0.0.11 valid=30s;` (Docker'ın iç DNS'i) ve 3 `content_by_lua_file` location'ı (`/users`, `/products`, `/cache`) tanımlandı, `access_by_lua_file` ile tüm isteklere `auth.lua` (token kontrol) uygulandı.
+  - `auth.lua`, `users.lua` (PostgreSQL/pgmoon), `products.lua` (MySQL/resty.mysql), `cache.lua` (Redis/resty.redis) yazıldı.
+  - `init/postgres/init.sql` ve `init/mysql/init.sql` ile başlangıç tabloları ve örnek veriler tanımlandı.
+  - `sudo docker compose up -d` ile 4 servis build edilip başlatıldı, `docker compose ps` ile durum doğrulandı.
+  - Token olmadan `/users` isteği → 401; token ile `/users` → PostgreSQL'den JSON; token ile `/products` → MySQL'den JSON; `/cache`'e iki ardışık istek → Redis cache davranışı (oluşturma → okuma) doğrulandı.
+- **Kilometre Taşları & Çıktılar:**
+  - 🔐 OpenResty Notları: [21-OpenResty](./21-OpenResty/readme.md)
+
 ---
 
 ## 🛠️ Ortam
@@ -322,7 +338,7 @@ _19. fazdaki sunucu üzerine iki yeni yetenek ekledim: `limit_req_zone`/`limit_r
 - **Guest OS:** Rocky Linux 10.2 (Red Quartz)
 - **VM Kaynakları:** 4096 MB RAM, 4 vCPU, 20 GB Disk
 - **Klavye Düzeni:** Türkçe (TR)
-- **Ek Ortam (Faz 17-20):** WSL2 üzerinde Ubuntu 26.04 LTS (gerçek kiralık sunucu simülasyonu için)
+- **Ek Ortam (Faz 17-21):** WSL2 üzerinde Ubuntu 26.04 LTS (gerçek kiralık sunucu simülasyonu için)
 
 ---
 
