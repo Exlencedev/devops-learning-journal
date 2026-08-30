@@ -4,11 +4,11 @@ Bu repo, Linux ve DevOps temellerini öğrenirken tuttuğum günlük notları be
 
 ## 📍 Şu An Neredeyim
 
-OpenResty fazını (Faz 21) tamamladım: token korumalı bir API kurup, Lua ile PostgreSQL, MySQL ve Redis'e bağlanan 3 ayrı endpoint oluşturdum — hepsi Docker Compose ile tek seferde ayağa kaldırıldı. `pgmoon` kütüphanesi resmi paket yöneticileriyle kurulamadığı için Dockerfile'da doğrudan GitHub'dan klonlandı; bu, ilk denemede sorunsuz çalıştı. Tek karşılaşılan engel basit bir izin meselesiydi (`docker compose` komutu `sudo` gerektirdi, çünkü kullanıcı `docker` grubunda değildi). Token kontrolü, PostgreSQL/MySQL sorguları ve Redis cache mantığı (ilk istekte oluşturma, ikinci istekte cache'ten okuma) hepsi beklenen şekilde çalıştı.
+rclone & Amazon S3 fazını (Faz 22) tamamladım: gerçek bir AWS hesabı açıp bir S3 bucket'ı (`ege-devops-journal-1`, eu-central-1/Frankfurt) ve IAM kullanıcısı oluşturdum, sonra `rclone` ile bağlanıp performans testleri, `rclone serve http` (private S3'ü güvenli şekilde dışarıya açma), ve `rclone mount` (S3'ü yerel disk gibi kullanma) test ettim. En değerli bulgu, WSL2'nin ağ katmanının performans testlerinde kaynak metindeki gerçek VDS'ye göre çok farklı sonuçlar vermesiydi: yükleme testleri 30 kat daha yavaştı ve `--fast-list` gibi performans parametreleri hiçbir gözlemlenebilir fark yaratmadı — çünkü darboğaz zaten ağ bant genişliğiydi, listeleme overhead'i değildi. Buna karşılık, `rclone mount`'un cache özelliği (`--vfs-cache-mode full`) muhteşem çalıştı: ikinci okuma ilk okumaya göre ~285 kat daha hızlıydı (S3'e hiç gitmeden yerel cache'ten okundu).
 
-Bundan önce, Nginx: Rate Limiting ve Load Balancing fazını (Faz 20) tamamladım: `limit_req_zone`/`limit_req` ile IP bazlı istek sınırlama, ve `upstream` ile iki backend arasında round-robin dağıtım + otomatik failover kurup gerçek testlerle doğruladım. Süreçte üç gerçek hatayla karşılaştım — hepsi de önceki fazlardan kalan arka plan süreçlerinin (backend simülasyonları) sessizce ölmüş olmasından kaynaklandı: round-robin testinde önce sadece bir backend'e trafik gitti (diğer instance hiç çalışmıyordu), rate limiting testinde ilk denemede beklenen 200'ler yerine 502 alındı (asıl backend port 8080 çalışmıyordu). Bu, uzun süren çok fazlı bir çalışmada `ss -tlnp` ile port durumunu düzenli kontrol etmenin önemini gösterdi. Failover testinde ise (Instance 1'i `kill` ile kapatma) `upstream` bloğunun trafiği hiç kesintisiz olarak sağlıklı backend'e kaydırdığı net bir şekilde doğrulandı.
+Bundan önce, OpenResty fazını (Faz 21) tamamladım: token korumalı bir API kurup, Lua ile PostgreSQL, MySQL ve Redis'e bağlanan 3 ayrı endpoint oluşturdum — hepsi Docker Compose ile tek seferde ayağa kaldırıldı. `pgmoon` kütüphanesi resmi paket yöneticileriyle kurulamadığı için Dockerfile'da doğrudan GitHub'dan klonlandı; bu, ilk denemede sorunsuz çalıştı.
 
-Ondan önce, Nginx Derinleşme fazını (Faz 19) tamamladım: reverse proxy kurulumu, path bazlı yönlendirme, path rewrite, path engelleme (`deny`/`allow`), ve Squid ile forward proxy — hepsi gerçek testlerle doğrulandı. 6 gerçek hatayla karşılaştım; en öğreticileri: `deny all` eklendikten sonra `reload`'un değişikliği yansıtmaması (`restart` ile çözüldü), `allow 127.0.0.1`'in `localhost` isteğini engellemesi (çünkü `localhost` bu sistemde IPv6/`::1` üzerinden çözümleniyordu, `allow ::1` eklenince düzeldi), ve Squid'in `http_access allow all` kuralının dosyanın yanlış yerine eklenmesi yüzünden etkisiz kalması.
+Ondan önce, Nginx: Rate Limiting ve Load Balancing fazını (Faz 20) tamamladım: `limit_req_zone`/`limit_req` ile IP bazlı istek sınırlama, ve `upstream` ile iki backend arasında round-robin dağıtım + otomatik failover kurup gerçek testlerle doğruladım. Süreçte üç gerçek hatayla karşılaştım — hepsi de önceki fazlardan kalan arka plan süreçlerinin (backend simülasyonları) sessizce ölmüş olmasından kaynaklandı.
 
 Sırada CI/CD ve Konteynerizasyon fazları var.
 
@@ -39,6 +39,7 @@ Sırada CI/CD ve Konteynerizasyon fazları var.
 - [19-Nginx-Deep-Dive](./19-Nginx-Deep-Dive/): Nginx reverse proxy derinleşmesi — path bazlı yönlendirme, path rewrite (`proxy_pass` sonundaki `/` farkı), 301 redirect davranışı, `deny`/`allow` ile erişim kontrolü (IPv4/IPv6 farkı dahil), ve Squid ile forward proxy kurulumu.
 - [20-Rate-Limiting-Load-Balancing](./20-Rate-Limiting-Load-Balancing/): `limit_req_zone`/`limit_req` ile IP bazlı rate limiting, `upstream` bloğu ile round-robin load balancing, otomatik failover testi, `least_conn`/`ip_hash` alternatiflerine kavramsal bakış.
 - [21-OpenResty](./21-OpenResty/): Lua gömülü Nginx (OpenResty) ile token authentication, `pgmoon` ile PostgreSQL, `resty.mysql` ile MySQL, `resty.redis` ile cache — 4 servisin (openresty, postgres, mysql, redis) Docker Compose ile birlikte orkestrasyonu.
+- [22-rclone-S3](./22-rclone-S3/): Gerçek bir AWS hesabı, S3 bucket'ı ve IAM kullanıcısı kurulumu; `rclone` ile S3 bağlantısı, performans parametreleri (`--transfers`, `--fast-list`, `--buffer-size`) testleri, `rclone serve http` ile private S3'ü güvenli şekilde dışarıya açma, `rclone mount` ile S3'ü yerel disk gibi kullanma (cache'li/cache'siz karşılaştırma).
 
 ---
 
@@ -302,7 +303,7 @@ _Bu fazda Nginx'in reverse proxy yeteneklerinde derinleştim: temel proxy kurulu
 
 ### 🔹 Gün 19 | Nginx: Rate Limiting ve Load Balancing
 
-_19. fazdaki sunucu üzerine iki yeni yetenek ekledim: `limit_req_zone`/`limit_req` ile IP bazlı istek sınırlama, ve `upstream` bloğu ile iki backend arasında round-robin dağıtım + otomatik failover. Üç ayrı hatayla karşılaştım, hepsi de aynı kök nedene bağlıydı: önceki fazlardan kalan arka plan backend süreçlerinin (Python `http.server`) bir veya birden fazlası sessizce ölmüştü. Round-robin testinde önce sadece bir instance'a trafik gittiğini gördüm — `ss -tlnp` ile kontrol edince diğer instance'ın (port 3000) hiç çalışmadığını fark ettim. Yeniden başlatınca bu sefer tüm trafik tersi yöne (sadece 3000'e) gitti — isteklere `sleep 0.3` ekleyip yavaşlatınca gerçek round-robin davranışı gözlemlenebildi. Rate limiting testinde de benzer bir şey oldu: ilk 11 istek beklenen 200 yerine 502 döndürdü, çünkü ana backend (port 8080) da çalışmıyordu — bunu düzeltince test kaynak metindeki sonuca çok yakın bir şekilde (11× 200, sonra 503'ler) tamamlandı. En net kanıt failover testinde geldi: Instance 1'i `kill` ile kapattığımda, sonraki tüm istekler hiçbir hata vermeden, kesintisiz şekilde Instance 2'ye yönlendi._
+_19. fazdaki sunucu üzerine iki yeni yetenek ekledim: `limit_req_zone`/`limit_req` ile IP bazlı istek sınırlama, ve `upstream` bloğu ile iki backend arasında round-robin dağıtım + otomatik failover. Üç ayrı hatayla karşılaştım, hepsi de aynı kök nedene bağlıydı: önceki fazlardan kalan arka plan backend süreçlerinin (Python `http.server`) bir veya birden fazlası sessizce ölmüştü. En net kanıt failover testinde geldi: Instance 1'i `kill` ile kapattığımda, sonraki tüm istekler hiçbir hata vermeden, kesintisiz şekilde Instance 2'ye yönlendi._
 
 - **Görevler & Hedefler:**
   - `limit_req_zone $binary_remote_addr zone=genel:10m rate=5r/s;` `nginx.conf`'un `http` bloğuna eklendi.
@@ -311,24 +312,39 @@ _19. fazdaki sunucu üzerine iki yeni yetenek ekledim: `limit_req_zone`/`limit_r
   - İkinci bir `users` backend instance'ı (port 3001) başlatılıp `upstream users_backend { server localhost:3000; server localhost:3001; }` bloğu tanımlandı.
   - Round-robin dağılımı, isteklere küçük bir bekleme (`sleep 0.3`) eklenerek doğrulandı.
   - Instance 1 (`kill $(lsof -t -i:3000)`) kapatılıp, trafiğin kesintisiz olarak Instance 2'ye kaydığı (failover) kanıtlandı.
-  - `least_conn` ve `ip_hash` alternatif load balancing yöntemleri kavramsal olarak incelendi (bu fazda uygulanmadı — backend'ler stateless olduğu için gerek duyulmadı).
+  - `least_conn` ve `ip_hash` alternatif load balancing yöntemleri kavramsal olarak incelendi.
 - **Kilometre Taşları & Çıktılar:**
   - 🚦 Rate Limiting & Load Balancing Notları: [20-Rate-Limiting-Load-Balancing](./20-Rate-Limiting-Load-Balancing/readme.md)
 
 ### 🔹 Gün 20 | OpenResty: Token Authentication, PostgreSQL, MySQL, Redis
 
-_Bu fazda Nginx'in ötesine geçip OpenResty ile Lua kodu çalıştıran bir API kurdum. Dört servisi (OpenResty, PostgreSQL, MySQL, Redis) tek bir `docker-compose.yml` ile tanımlayıp `docker compose up -d` ile hepsini birden ayağa kaldırdım. `pgmoon` kütüphanesi Alpine'ın paket yöneticileriyle kurulamadığı için Dockerfile içinde doğrudan GitHub'dan clone edildi — bu adım ilk denemede sorunsuz çalıştı. Tek karşılaşılan engel `docker compose up` öncesi "permission denied" hatasıydı (kullanıcı `docker` grubunda değildi, `sudo` ile çözüldü). Dosyaları oluştururken bir tanesinde (`cache.lua`) `cat` çıktısında fazladan bir `,` karakteri gördüm ama `xxd` ile dosyanın ham baytlarını kontrol edince bunun sadece bir terminal görüntüleme sorunu olduğunu, gerçek dosyanın temiz olduğunu doğruladım. Token kontrolü (401), PostgreSQL sorgusu (Türkçe karakter dahil), MySQL sorgusu, ve Redis cache mantığı (ilk istekte oluşturma, ikincisinde cache'ten okuma) hepsi ilk seferde beklendiği gibi çalıştı._
+_Bu fazda Nginx'in ötesine geçip OpenResty ile Lua kodu çalıştıran bir API kurdum. Dört servisi (OpenResty, PostgreSQL, MySQL, Redis) tek bir `docker-compose.yml` ile tanımlayıp `docker compose up -d` ile hepsini birden ayağa kaldırdım. `pgmoon` kütüphanesi Alpine'ın paket yöneticileriyle kurulamadığı için Dockerfile içinde doğrudan GitHub'dan clone edildi — bu adım ilk denemede sorunsuz çalıştı. Token kontrolü (401), PostgreSQL sorgusu (Türkçe karakter dahil), MySQL sorgusu, ve Redis cache mantığı hepsi ilk seferde beklendiği gibi çalıştı._
 
 - **Görevler & Hedefler:**
   - `openresty-demo/` proje yapısı oluşturuldu: `docker-compose.yml`, `Dockerfile`, `nginx.conf`, `lua/` (4 dosya), `init/` (2 SQL dosyası).
   - `Dockerfile` ile `pgmoon` kütüphanesi GitHub'dan clone edilip OpenResty image'ına eklendi.
-  - `nginx.conf`'a `resolver 127.0.0.11 valid=30s;` (Docker'ın iç DNS'i) ve 3 `content_by_lua_file` location'ı (`/users`, `/products`, `/cache`) tanımlandı, `access_by_lua_file` ile tüm isteklere `auth.lua` (token kontrol) uygulandı.
+  - `nginx.conf`'a `resolver 127.0.0.11 valid=30s;` (Docker'ın iç DNS'i) ve 3 `content_by_lua_file` location'ı tanımlandı.
   - `auth.lua`, `users.lua` (PostgreSQL/pgmoon), `products.lua` (MySQL/resty.mysql), `cache.lua` (Redis/resty.redis) yazıldı.
-  - `init/postgres/init.sql` ve `init/mysql/init.sql` ile başlangıç tabloları ve örnek veriler tanımlandı.
-  - `sudo docker compose up -d` ile 4 servis build edilip başlatıldı, `docker compose ps` ile durum doğrulandı.
-  - Token olmadan `/users` isteği → 401; token ile `/users` → PostgreSQL'den JSON; token ile `/products` → MySQL'den JSON; `/cache`'e iki ardışık istek → Redis cache davranışı (oluşturma → okuma) doğrulandı.
+  - `sudo docker compose up -d` ile 4 servis build edilip başlatıldı.
+  - Token olmadan `/users` isteği → 401; token ile `/users` → PostgreSQL'den JSON; token ile `/products` → MySQL'den JSON; `/cache`'e iki ardışık istek → Redis cache davranışı doğrulandı.
 - **Kilometre Taşları & Çıktılar:**
   - 🔐 OpenResty Notları: [21-OpenResty](./21-OpenResty/readme.md)
+
+### 🔹 Gün 21 | rclone & Amazon S3: Bulut Depolama ve Güvenli Erişim
+
+_Bu fazda gerçek bir AWS hesabı açıp bir S3 bucket'ı (`ege-devops-journal-1`, eu-central-1/Frankfurt) ve IAM kullanıcısı (`rclone-user`) oluşturdum. Kaynak metinde yapılan `location_constraint` hatasını (EU yerine eu-central-1 yazmak gerekiyor) baştan önleyerek doğrudan doğru değeri girdim. En büyük fark performans testlerinde ortaya çıktı: kaynak metinde 1-1.5 saniye süren yükleme testleri, bu WSL2 ortamında 37-42 saniye sürdü — ve `--fast-list` gibi performans parametreleri hiçbir gözlemlenebilir fark yaratmadı, çünkü darboğaz zaten ağ bant genişliğiydi, listeleme overhead'i değildi. Buna karşılık `rclone mount`'un cache özelliği inanılmaz bir fark yarattı: cache'siz bir okuma 2.4 saniye sürerken, cache'li ikinci okuma sadece 0.009 saniye sürdü (~285 kat hızlanma). `rclone serve http` ile private bucket'ı hiç AWS kimlik bilgisi paylaşmadan tarayıcıdan görüntüleyebildim, ve environment variable ile verilen şifrenin log dosyasında gerçekten `XXXX` olarak maskelendiğini doğruladım._
+
+- **Görevler & Hedefler:**
+  - AWS hesabı açıldı; S3 bucket'ı (`ege-devops-journal-1`) ve `AmazonS3FullAccess` yetkili IAM kullanıcısı (`rclone-user`) oluşturuldu, Access Key alındı.
+  - `unzip` eksikliği yüzünden başarısız olan ilk rclone kurulumu düzeltilip `rclone` kuruldu.
+  - `rclone config` ile S3 remote'u yapılandırıldı (`eu-central-1` region ve location constraint doğru eşleştirildi).
+  - 10×5MB test dosyasıyla varsayılan ve performans parametreli (`--transfers`, `--checkers`, `--buffer-size`, `--fast-list`) yükleme testleri karşılaştırıldı.
+  - `rclone serve http` ile private S3 bucket'ı, AWS kimlik bilgisi paylaşmadan tarayıcıdan görüntülendi.
+  - `rclone mount` ile S3, cache'siz ve cache'li (`--vfs-cache-mode full`) olarak yerel disk gibi bağlandı, okuma hızları karşılaştırıldı.
+  - `RCLONE_USER`/`RCLONE_PASS` environment variable'larıyla auth eklendi, 401/200 davranışı ve log'daki şifre maskelemesi (`XXXX`) doğrulandı.
+  - `--rc` ile remote control açılıp `rclone rc vfs/forget` komutu test edildi.
+- **Kilometre Taşları & Çıktılar:**
+  - 🗄️ rclone & S3 Notları: [22-rclone-S3](./22-rclone-S3/readme.md)
 
 ---
 
@@ -338,7 +354,8 @@ _Bu fazda Nginx'in ötesine geçip OpenResty ile Lua kodu çalıştıran bir API
 - **Guest OS:** Rocky Linux 10.2 (Red Quartz)
 - **VM Kaynakları:** 4096 MB RAM, 4 vCPU, 20 GB Disk
 - **Klavye Düzeni:** Türkçe (TR)
-- **Ek Ortam (Faz 17-21):** WSL2 üzerinde Ubuntu 26.04 LTS (gerçek kiralık sunucu simülasyonu için)
+- **Ek Ortam (Faz 17-22):** WSL2 üzerinde Ubuntu 26.04 LTS (gerçek kiralık sunucu simülasyonu için)
+- **Bulut Kaynakları (Faz 22):** Amazon Web Services (AWS) hesabı, S3 bucket'ı `eu-central-1` (Frankfurt) bölgesinde
 
 ---
 
