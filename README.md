@@ -4,11 +4,11 @@ Bu repo, Linux ve DevOps temellerini öğrenirken tuttuğum günlük notları be
 
 ## 📍 Şu An Neredeyim
 
-rclone & Amazon S3 fazını (Faz 22) tamamladım: gerçek bir AWS hesabı açıp bir S3 bucket'ı (`ege-devops-journal-1`, eu-central-1/Frankfurt) ve IAM kullanıcısı oluşturdum, sonra `rclone` ile bağlanıp performans testleri, `rclone serve http` (private S3'ü güvenli şekilde dışarıya açma), ve `rclone mount` (S3'ü yerel disk gibi kullanma) test ettim. En değerli bulgu, WSL2'nin ağ katmanının performans testlerinde kaynak metindeki gerçek VDS'ye göre çok farklı sonuçlar vermesiydi: yükleme testleri 30 kat daha yavaştı ve `--fast-list` gibi performans parametreleri hiçbir gözlemlenebilir fark yaratmadı — çünkü darboğaz zaten ağ bant genişliğiydi, listeleme overhead'i değildi. Buna karşılık, `rclone mount`'un cache özelliği (`--vfs-cache-mode full`) muhteşem çalıştı: ikinci okuma ilk okumaya göre ~285 kat daha hızlıydı (S3'e hiç gitmeden yerel cache'ten okundu).
+Drupal fazını (Faz 23) tamamladım: Rocky Linux 9 üzerinde nginx + PHP-FPM stack'i ile sıfırdan bir Drupal kurulumu gerçekleştirdim. Süreçte art arda gerçek hatalarla karşılaştım — dosya sistemi izinleri (`www-data` yerine bu sistemde `apache` kullanıcısının kullanılması gerektiğini keşfetmem), veritabanı kimlik doğrulama katmanları (SELinux'un ağ bağlantısını engellemesi, `pg_hba.conf`'un `ident`/`scram-sha-256` farkı), ve en can alıcısı, kurulu PostgreSQL sürümünün (13.23) Drupal'ın gerektirdiği minimum sürümün (16) altında kalması. Bu son sorunu, resmi PGDG reposunu ekleyip PostgreSQL 16'ya geçerek çözdüm. En değerli ders, hata mesajlarını yüzeysel okuyup körlemesine komut kopyalamak yerine her adımda (`ps aux`, `getenforce`, `pg_hba.conf` içeriği gibi) gerçek durumu doğrulamanın, gereksiz değişiklik yapmayı önlediğiydi.
 
-Bundan önce, OpenResty fazını (Faz 21) tamamladım: token korumalı bir API kurup, Lua ile PostgreSQL, MySQL ve Redis'e bağlanan 3 ayrı endpoint oluşturdum — hepsi Docker Compose ile tek seferde ayağa kaldırıldı. `pgmoon` kütüphanesi resmi paket yöneticileriyle kurulamadığı için Dockerfile'da doğrudan GitHub'dan klonlandı; bu, ilk denemede sorunsuz çalıştı.
+Bundan önce, rclone & Amazon S3 fazını (Faz 22) tamamladım: gerçek bir AWS hesabı açıp bir S3 bucket'ı (`ege-devops-journal-1`, eu-central-1/Frankfurt) ve IAM kullanıcısı oluşturdum, sonra `rclone` ile bağlanıp performans testleri, `rclone serve http` (private S3'ü güvenli şekilde dışarıya açma), ve `rclone mount` (S3'ü yerel disk gibi kullanma) test ettim. En değerli bulgu, WSL2'nin ağ katmanının performans testlerinde kaynak metindeki gerçek VDS'ye göre çok farklı sonuçlar vermesiydi: yükleme testleri 30 kat daha yavaştı ve `--fast-list` gibi performans parametreleri hiçbir gözlemlenebilir fark yaratmadı — çünkü darboğaz zaten ağ bant genişliğiydi, listeleme overhead'i değildi. Buna karşılık, `rclone mount`'un cache özelliği (`--vfs-cache-mode full`) muhteşem çalıştı: ikinci okuma ilk okumaya göre ~285 kat daha hızlıydı (S3'e hiç gitmeden yerel cache'ten okundu).
 
-Ondan önce, Nginx: Rate Limiting ve Load Balancing fazını (Faz 20) tamamladım: `limit_req_zone`/`limit_req` ile IP bazlı istek sınırlama, ve `upstream` ile iki backend arasında round-robin dağıtım + otomatik failover kurup gerçek testlerle doğruladım. Süreçte üç gerçek hatayla karşılaştım — hepsi de önceki fazlardan kalan arka plan süreçlerinin (backend simülasyonları) sessizce ölmüş olmasından kaynaklandı.
+Ondan önce, OpenResty fazını (Faz 21) tamamladım: token korumalı bir API kurup, Lua ile PostgreSQL, MySQL ve Redis'e bağlanan 3 ayrı endpoint oluşturdum — hepsi Docker Compose ile tek seferde ayağa kaldırıldı. `pgmoon` kütüphanesi resmi paket yöneticileriyle kurulamadığı için Dockerfile'da doğrudan GitHub'dan klonlandı; bu, ilk denemede sorunsuz çalıştı.
 
 Sırada CI/CD ve Konteynerizasyon fazları var.
 
@@ -40,6 +40,7 @@ Sırada CI/CD ve Konteynerizasyon fazları var.
 - [20-Rate-Limiting-Load-Balancing](./20-Rate-Limiting-Load-Balancing/): `limit_req_zone`/`limit_req` ile IP bazlı rate limiting, `upstream` bloğu ile round-robin load balancing, otomatik failover testi, `least_conn`/`ip_hash` alternatiflerine kavramsal bakış.
 - [21-OpenResty](./21-OpenResty/): Lua gömülü Nginx (OpenResty) ile token authentication, `pgmoon` ile PostgreSQL, `resty.mysql` ile MySQL, `resty.redis` ile cache — 4 servisin (openresty, postgres, mysql, redis) Docker Compose ile birlikte orkestrasyonu.
 - [22-rclone-S3](./22-rclone-S3/): Gerçek bir AWS hesabı, S3 bucket'ı ve IAM kullanıcısı kurulumu; `rclone` ile S3 bağlantısı, performans parametreleri (`--transfers`, `--fast-list`, `--buffer-size`) testleri, `rclone serve http` ile private S3'ü güvenli şekilde dışarıya açma, `rclone mount` ile S3'ü yerel disk gibi kullanma (cache'li/cache'siz karşılaştırma).
+- [23-Drupal-Setup](./23-Drupal-Setup/): Rocky Linux 9 üzerinde nginx + PHP-FPM ile sıfırdan Drupal kurulumu; dosya sistemi izinleri (`apache` kullanıcısı), PostgreSQL veritabanı/kullanıcı oluşturma, SELinux'un veritabanı bağlantısını engellemesi, `pg_hba.conf` kimlik doğrulama yöntemleri (`ident` vs `scram-sha-256`), ve PostgreSQL 13 → 16 sürüm yükseltmesi.
 
 ---
 
@@ -346,6 +347,23 @@ _Bu fazda gerçek bir AWS hesabı açıp bir S3 bucket'ı (`ege-devops-journal-1
 - **Kilometre Taşları & Çıktılar:**
   - 🗄️ rclone & S3 Notları: [22-rclone-S3](./22-rclone-S3/readme.md)
 
+### 🔹 Gün 22 | Drupal Kurulumu: nginx, PHP-FPM ve PostgreSQL Bir Arada
+
+_Bu fazda Vagrant ile ayağa kaldırdığım Rocky Linux 9 VM'inde nginx + PHP-FPM stack'i üzerine sıfırdan bir Drupal kurulumu yaptım ve art arda gerçek hatalarla debug ederek ilerledim. İlk olarak `sites/default/files` dizini için `www-data` kullanıcısına `chown` yapmaya çalıştım ama hata aldım — `ps aux | grep php-fpm` ile PHP-FPM'in bu sistemde aslında `apache` kullanıcısıyla çalıştığını gördüm (`www-data`, Debian/Ubuntu'ya özgüymüş, RHEL tabanlı Rocky'de yok). Ardından `nginx.conf`'u inceleyip Drupal'ın gerçek kök dizininin (`/var/www/drupal/web`) host'taki proje klasörümden (`C:\Users\ege\drupal-vagrant`) farklı bir path'e karşılık geldiğini fark ettim. Veritabanı adımında PostgreSQL seçtim ve sırasıyla iki kimlik doğrulama sorunuyla karşılaştım: önce SELinux'un `httpd_can_network_connect_db` boolean'ı kapalı olduğu için PHP-FPM'in veritabanına ağ üzerinden bağlanması engelleniyordu, sonra `pg_hba.conf`'un `ident` kullandığını düşünüp incelemeye gittiğimde aslında zaten `scram-sha-256` (şifre tabanlı, `md5`'den daha güvenli) kullanıldığını görüp gereksiz bir değişiklikten kaçındım. En büyük sürpriz sona saklanmıştı: kurulu PostgreSQL sürümü (13.23), Drupal'ın gerektirdiği minimum sürümün (16) altındaydı — Rocky'nin varsayılan AppStream reposu yerine resmi PGDG reposunu ekleyip PostgreSQL 16'ya geçerek çözdüm. Bu fazın en değerli dersi, her hata mesajını yüzeysel okuyup çözümü ezbere uygulamak yerine, `ps aux`, `getenforce`, dosya içerikleri gibi gerçek sistem durumunu her adımda doğrulamaktı._
+
+- **Görevler & Hedefler:**
+  - `sites/default/files` dizini için doğru sahiplik kullanıcısı (`apache`) `ps aux | grep php-fpm` ile tespit edildi, dizin oluşturulup `chown`/`chmod` uygulandı.
+  - `sites/default/default.settings.php`, `settings.php` olarak kopyalanıp geçici `666` izni verildi.
+  - nginx config'i (`root` direktifi) incelenerek Drupal'ın gerçek kök dizini (`/var/www/drupal/web`) doğrulandı.
+  - PostgreSQL üzerinde `drupaluser` kullanıcısı ve `drupaldb` veritabanı oluşturuldu; zaten var olan kullanıcının şifresi `ALTER USER` ile yeniden belirlendi.
+  - `SQLSTATE[08006] Permission denied` hatası, SELinux `httpd_can_network_connect_db` boolean'ının `setsebool -P` ile açılmasıyla çözüldü.
+  - `Ident authentication failed` hatası araştırılırken `pg_hba.conf` incelendi, aslında `scram-sha-256` kullanıldığı görülüp dosyada değişiklik yapılmadı.
+  - `database server version 13.23 is less than the minimum required version 16` hatası üzerine PGDG reposu eklenip Rocky'nin yerleşik postgresql modülü devre dışı bırakılarak PostgreSQL 16 kuruldu, veritabanı kümesi `initdb` ile başlatıldı.
+  - PostgreSQL 16 üzerinde kullanıcı/veritabanı yeniden oluşturuldu, Drupal kurulum sihirbazında "Configure site" adımı (site adı, admin hesabı, bölgesel ayarlar) tamamlandı.
+  - Kurulum sonrası `settings.php` izinleri güvenlik amacıyla `644`'e sıkılaştırıldı.
+- **Kilometre Taşları & Çıktılar:**
+  - 🌐 Drupal Kurulum Notları: [23-Drupal-Setup](./23-Drupal-Setup/readme.md)
+
 ---
 
 ## 🛠️ Ortam
@@ -356,6 +374,7 @@ _Bu fazda gerçek bir AWS hesabı açıp bir S3 bucket'ı (`ege-devops-journal-1
 - **Klavye Düzeni:** Türkçe (TR)
 - **Ek Ortam (Faz 17-22):** WSL2 üzerinde Ubuntu 26.04 LTS (gerçek kiralık sunucu simülasyonu için)
 - **Bulut Kaynakları (Faz 22):** Amazon Web Services (AWS) hesabı, S3 bucket'ı `eu-central-1` (Frankfurt) bölgesinde
+- **Ek Ortam (Faz 23):** Vagrant ile ayağa kaldırılmış Rocky Linux 9 VM'i, nginx + PHP-FPM + PostgreSQL 16 stack'i (Drupal kurulumu için)
 
 ---
 
