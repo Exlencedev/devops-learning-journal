@@ -4,11 +4,11 @@ Bu repo, Linux ve DevOps temellerini öğrenirken tuttuğum günlük notları be
 
 ## 📍 Şu An Neredeyim
 
-Drupal fazını (Faz 23) tamamladım: Rocky Linux 9 üzerinde nginx + PHP-FPM stack'i ile sıfırdan bir Drupal kurulumu gerçekleştirdim. Süreçte art arda gerçek hatalarla karşılaştım — dosya sistemi izinleri (`www-data` yerine bu sistemde `apache` kullanıcısının kullanılması gerektiğini keşfetmem), veritabanı kimlik doğrulama katmanları (SELinux'un ağ bağlantısını engellemesi, `pg_hba.conf`'un `ident`/`scram-sha-256` farkı), ve en can alıcısı, kurulu PostgreSQL sürümünün (13.23) Drupal'ın gerektirdiği minimum sürümün (16) altında kalması. Bu son sorunu, resmi PGDG reposunu ekleyip PostgreSQL 16'ya geçerek çözdüm. En değerli ders, hata mesajlarını yüzeysel okuyup körlemesine komut kopyalamak yerine her adımda (`ps aux`, `getenforce`, `pg_hba.conf` içeriği gibi) gerçek durumu doğrulamanın, gereksiz değişiklik yapmayı önlediğiydi.
+Docker: Image, Container, Dockerfile ve Image Optimizasyonu fazını (Faz 24) tamamladım: image vs container, Dockerfile vs docker-compose.yml farkını derinleştirdim, volume kalıcılığını ve network isim çözümlemesini kendi WSL ortamımda gerçek testlerle doğruladım — bir container tamamen silinip yeniden oluşturulduğunda volume'daki verinin hiç etkilenmediğini, ve aynı Compose dosyasındaki servislerin birbirine sadece isimle (IP yazmadan) ulaşabildiğini kanıtladım. Windows container'ların neden Linux kernel'i çalıştıran bir sunucuda hiçbir şekilde çalışamayacağını (container'ların kendi kernel'ini taşımaması) ve Dockerfile optimizasyon tekniklerini (alpine base image, multi-stage build, layer caching sırası, RUN satırlarını birleştirme) kavramsal olarak işledim.
 
-Bundan önce, rclone & Amazon S3 fazını (Faz 22) tamamladım: gerçek bir AWS hesabı açıp bir S3 bucket'ı (`ege-devops-journal-1`, eu-central-1/Frankfurt) ve IAM kullanıcısı oluşturdum, sonra `rclone` ile bağlanıp performans testleri, `rclone serve http` (private S3'ü güvenli şekilde dışarıya açma), ve `rclone mount` (S3'ü yerel disk gibi kullanma) test ettim. En değerli bulgu, WSL2'nin ağ katmanının performans testlerinde kaynak metindeki gerçek VDS'ye göre çok farklı sonuçlar vermesiydi: yükleme testleri 30 kat daha yavaştı ve `--fast-list` gibi performans parametreleri hiçbir gözlemlenebilir fark yaratmadı — çünkü darboğaz zaten ağ bant genişliğiydi, listeleme overhead'i değildi. Buna karşılık, `rclone mount`'un cache özelliği (`--vfs-cache-mode full`) muhteşem çalıştı: ikinci okuma ilk okumaya göre ~285 kat daha hızlıydı (S3'e hiç gitmeden yerel cache'ten okundu).
+Bundan önce, hocamın ayrı verdiği bir görev olarak Drupal fazını (Faz 23) tamamladım: Vagrant ile ayağa kaldırdığım Rocky Linux 9 VM'inde nginx + PHP-FPM stack'i üzerine sıfırdan bir Drupal kurulumu yaptım. Süreçte art arda gerçek hatalarla karşılaştım — dosya sistemi izinleri (bu sistemde `www-data` değil `apache` kullanıcısının kullanıldığını keşfetmem), SELinux'un veritabanı ağ bağlantısını engellemesi, ve en can alıcısı, kurulu PostgreSQL sürümünün (13.23) Drupal'ın gerektirdiği minimum sürümün (16) altında kalması — bunu resmi PGDG reposunu ekleyip PostgreSQL 16'ya geçerek çözdüm.
 
-Ondan önce, OpenResty fazını (Faz 21) tamamladım: token korumalı bir API kurup, Lua ile PostgreSQL, MySQL ve Redis'e bağlanan 3 ayrı endpoint oluşturdum — hepsi Docker Compose ile tek seferde ayağa kaldırıldı. `pgmoon` kütüphanesi resmi paket yöneticileriyle kurulamadığı için Dockerfile'da doğrudan GitHub'dan klonlandı; bu, ilk denemede sorunsuz çalıştı.
+Ondan önce, rclone & Amazon S3 fazını (Faz 22) tamamladım: gerçek bir AWS hesabı açıp bir S3 bucket'ı ve IAM kullanıcısı oluşturdum, sonra `rclone` ile bağlanıp performans testleri, `rclone serve http`, ve `rclone mount` test ettim. En değerli bulgu, WSL2'nin ağ katmanının performans testlerinde gerçek bir VDS'ye göre çok farklı sonuçlar vermesiydi.
 
 Sırada CI/CD ve Konteynerizasyon fazları var.
 
@@ -39,8 +39,9 @@ Sırada CI/CD ve Konteynerizasyon fazları var.
 - [19-Nginx-Deep-Dive](./19-Nginx-Deep-Dive/): Nginx reverse proxy derinleşmesi — path bazlı yönlendirme, path rewrite (`proxy_pass` sonundaki `/` farkı), 301 redirect davranışı, `deny`/`allow` ile erişim kontrolü (IPv4/IPv6 farkı dahil), ve Squid ile forward proxy kurulumu.
 - [20-Rate-Limiting-Load-Balancing](./20-Rate-Limiting-Load-Balancing/): `limit_req_zone`/`limit_req` ile IP bazlı rate limiting, `upstream` bloğu ile round-robin load balancing, otomatik failover testi, `least_conn`/`ip_hash` alternatiflerine kavramsal bakış.
 - [21-OpenResty](./21-OpenResty/): Lua gömülü Nginx (OpenResty) ile token authentication, `pgmoon` ile PostgreSQL, `resty.mysql` ile MySQL, `resty.redis` ile cache — 4 servisin (openresty, postgres, mysql, redis) Docker Compose ile birlikte orkestrasyonu.
-- [22-rclone-S3](./22-rclone-S3/): Gerçek bir AWS hesabı, S3 bucket'ı ve IAM kullanıcısı kurulumu; `rclone` ile S3 bağlantısı, performans parametreleri (`--transfers`, `--fast-list`, `--buffer-size`) testleri, `rclone serve http` ile private S3'ü güvenli şekilde dışarıya açma, `rclone mount` ile S3'ü yerel disk gibi kullanma (cache'li/cache'siz karşılaştırma).
-- [23-Drupal-Setup](./23-Drupal-Setup/): Rocky Linux 9 üzerinde nginx + PHP-FPM ile sıfırdan Drupal kurulumu; dosya sistemi izinleri (`apache` kullanıcısı), PostgreSQL veritabanı/kullanıcı oluşturma, SELinux'un veritabanı bağlantısını engellemesi, `pg_hba.conf` kimlik doğrulama yöntemleri (`ident` vs `scram-sha-256`), ve PostgreSQL 13 → 16 sürüm yükseltmesi.
+- [22-rclone-S3](./22-rclone-S3/): Gerçek bir AWS hesabı, S3 bucket'ı ve IAM kullanıcısı kurulumu; `rclone` ile S3 bağlantısı, performans parametreleri testleri, `rclone serve http` ile private S3'ü güvenli şekilde dışarıya açma, `rclone mount` ile S3'ü yerel disk gibi kullanma.
+- [23-Drupal-Setup](./23-Drupal-Setup/): Rocky Linux 9 üzerinde nginx + PHP-FPM ile sıfırdan Drupal kurulumu; dosya sistemi izinleri (`apache` kullanıcısı), PostgreSQL veritabanı/kullanıcı oluşturma, SELinux'un veritabanı bağlantısını engellemesi, `pg_hba.conf` kimlik doğrulama yöntemleri, ve PostgreSQL 13 → 16 sürüm yükseltmesi.
+- [24-Docker-Image-Container](./24-Docker-Image-Container/): Image vs container, Dockerfile vs docker-compose.yml, volume kalıcılığı ve network isim çözümlemesi (gerçek testlerle), Windows containers (kavramsal), Dockerfile optimizasyon teknikleri (alpine, multi-stage build, layer caching, RUN birleştirme).
 
 ---
 
@@ -275,12 +276,12 @@ _Kaynak müfredat bu fazı gerçek kiralık bir sunucuda anlatıyordu; elimde ki
 
 ### 🔹 Gün 17 | OSI Modeli: Katmanlar, Gerçek Senaryolar, Gerçek Paket Doğrulaması
 
-_Bu fazı, sadece kavramları okuyarak değil, her katmanı gerçek bir komutla doğrulayarak işledim. `tcpdump` ile bir DNS sorgusunu paket seviyesinde yakalamaya çalışırken WSL2'ye özgü bir sürprizle karşılaştım: `-i eth0` ile hiç paket gelmedi, çünkü WSL2'nin dahili DNS proxy'si (`10.255.255.254`) trafiği `lo` (loopback) arayüzünden geçiriyor — `-i any` ile çözdüm. Ardından `traceroute`/`ping` ile 4 gerçek hedefi (Cloudflare, Claude.ai, Google, Türkiye Sigorta) karşılaştırdım: Cloudflare ve Claude.ai (ikisi de Cloudflare altyapısında) sorunsuz tamamlandı; Google'ın `ping`'i tam açıkken `traceroute`'u kısmen kısıtlıydı (kaynak metinden farklı olarak tamamen değil); Türkiye Sigorta ise hem `ping`'i hem `traceroute`'u tamamen kapatmış — ICMP'yi bütünüyle engelliyor. `ip route` ile gerçek bir routing tablosu okudum ve `ip_forward`'ın `1` (açık) olmasının rastgele değil, Docker'ın kurulu olmasının doğrudan bir sonucu olduğunu doğruladım. Son olarak `dig +trace`'in WSL2'nin DNS mimarisiyle uyumsuz olduğunu keşfettim (root nameserver'lara ulaşamıyor), ama normal `dig` sorgusu sorunsuz çalıştı._
+_Bu fazı, sadece kavramları okuyarak değil, her katmanı gerçek bir komutla doğrulayarak işledim. `tcpdump` ile bir DNS sorgusunu paket seviyesinde yakalamaya çalışırken WSL2'ye özgü bir sürprizle karşılaştım: `-i eth0` ile hiç paket gelmedi, çünkü WSL2'nin dahili DNS proxy'si (`10.255.255.254`) trafiği `lo` (loopback) arayüzünden geçiriyor — `-i any` ile çözdüm. Ardından `traceroute`/`ping` ile 4 gerçek hedefi (Cloudflare, Claude.ai, Google, Türkiye Sigorta) karşılaştırdım. `ip route` ile gerçek bir routing tablosu okudum ve `ip_forward`'ın `1` (açık) olmasının Docker'ın kurulu olmasının doğrudan bir sonucu olduğunu doğruladım._
 
 - **Görevler & Hedefler:**
-  - `tcpdump` ile bir `dig google.com` sorgusunun ürettiği gerçek DNS paketleri (sorgu + cevap) yakalanıp analiz edildi, Layer 3 (IP)/Layer 4 (UDP/port 53) header bilgileri doğrulandı.
-  - `traceroute -m N` ve `ping -c 4` ile 4 farklı gerçek hedefe (1.1.1.1, claude.ai, google.com, turkiyesigorta.com.tr) test yapılıp ICMP politika farkları karşılaştırıldı.
-  - `ip route` ile gerçek routing tablosu satır satır yorumlandı (default gateway, docker0 ağı, yerel ağ aralığı).
+  - `tcpdump` ile bir `dig google.com` sorgusunun ürettiği gerçek DNS paketleri yakalanıp analiz edildi.
+  - `traceroute -m N` ve `ping -c 4` ile 4 farklı gerçek hedefe test yapılıp ICMP politika farkları karşılaştırıldı.
+  - `ip route` ile gerçek routing tablosu satır satır yorumlandı.
   - `cat /proc/sys/net/ipv4/ip_forward` ile IP forwarding durumu kontrol edildi, Docker ile ilişkisi doğrulandı.
   - `dig +trace google.com` denendi (WSL2 mimarisiyle uyumsuz olduğu görüldü), `dig google.com` ile normal DNS çözümlemesi doğrulandı.
 - **Kilometre Taşları & Çıktılar:**
@@ -288,81 +289,79 @@ _Bu fazı, sadece kavramları okuyarak değil, her katmanı gerçek bir komutla 
 
 ### 🔹 Gün 18 | Nginx Derinleşme: Reverse Proxy, Path Yönetimi, Forward Proxy
 
-_Bu fazda Nginx'in reverse proxy yeteneklerinde derinleştim: temel proxy kurulumundan path bazlı yönlendirmeye, path rewrite'a, ve erişim kontrolüne kadar hepsini gerçek testlerle doğruladım. En değerli hatalar şunlardı: `deny all` eklendikten sonra `sudo systemctl reload nginx` değişikliği yansıtmadı, `restart` ile kesin çözüldü. `allow 127.0.0.1; deny all;` ile `curl http://localhost/admin` 403 verirken `curl http://127.0.0.1/admin` çalıştı — `curl -v` çıktısı `localhost`'un bu sistemde IPv6 (`::1`) üzerinden çözümlendiğini gösterdi, `allow ::1` eklenince düzeldi. Son olarak Squid ile forward proxy kurarken, `http_access allow all` kuralını dosyanın sonuna eklemek işe yaramadı (Squid'in kendi varsayılan `deny` kuralları ondan önce eşleşiyordu) — kuralı doğru sıraya taşıyınca Squid access log'unda Windows'un tüm HTTPS trafiğinin (`claude.ai`, `www.google.com` dahil) gerçekten tünellendiğini gördüm. İlginç bir WSL2 sınırlaması da keşfettim: Squid çalışsa da, `ifconfig.me` testi hâlâ benim gerçek IP'mi gösterdi — muhtemelen WSL2'nin kendisi zaten Windows'un arkasında NAT'lı olduğu için oluşan bir "çift NAT" durumu._
+_Bu fazda Nginx'in reverse proxy yeteneklerinde derinleştim: temel proxy kurulumundan path bazlı yönlendirmeye, path rewrite'a, ve erişim kontrolüne kadar hepsini gerçek testlerle doğruladım. En değerli hatalar şunlardı: `deny all` eklendikten sonra `reload`'un değişikliği yansıtmaması (`restart` ile çözüldü), `allow 127.0.0.1`'in `localhost` isteğini engellemesi (IPv6/`::1` farkı), ve Squid'in `http_access allow all` kuralının dosyanın yanlış yerine eklenmesi yüzünden etkisiz kalması._
 
 - **Görevler & Hedefler:**
-  - Python `http.server` ile 3 ayrı backend servis (8080, 3000, 4000 portlarında) başlatıldı.
+  - Python `http.server` ile 3 ayrı backend servis başlatıldı.
   - `proxy_pass`, `proxy_set_header Host`, `proxy_set_header X-Real-IP` ile temel reverse proxy kuruldu ve doğrulandı.
-  - `/users/` ve `/computers/` path'leri için ayrı `location` blokları tanımlanıp path bazlı yönlendirme test edildi.
-  - `proxy_pass` sonundaki `/` karakterinin path rewrite (prefix soyma) davranışını nasıl belirlediği gerçek bir 404→200 testiyle kanıtlandı.
-  - `/users` (trailing slash olmadan) isteğinin otomatik 301 ile `/users/`'a yönlendirildiği doğrulandı.
-  - `location /admin { deny all; }` ile tüm erişim engellendi; `reload`'un yetersiz kaldığı, `restart`'ın gerektiği görüldü.
-  - `allow 127.0.0.1; allow ::1; deny all;` ile sadece localhost'a izin verildi; IPv4/IPv6 farkının pratik etkisi gerçek bir hatayla deneyimlendi.
-  - Squid kurulup forward proxy olarak yapılandırıldı, Windows sistem proxy ayarı ile gerçek trafik Squid üzerinden tünellendi (access log ile kanıtlandı).
+  - Path bazlı yönlendirme, path rewrite ve 301 redirect davranışı test edildi.
+  - `deny`/`allow` ile erişim kontrolü (IPv4/IPv6 farkı dahil) test edildi.
+  - Squid kurulup forward proxy olarak yapılandırıldı, gerçek trafik Squid üzerinden tünellendi.
 - **Kilometre Taşları & Çıktılar:**
   - 🔀 Nginx Derinleşme Notları: [19-Nginx-Deep-Dive](./19-Nginx-Deep-Dive/readme.md)
 
 ### 🔹 Gün 19 | Nginx: Rate Limiting ve Load Balancing
 
-_19. fazdaki sunucu üzerine iki yeni yetenek ekledim: `limit_req_zone`/`limit_req` ile IP bazlı istek sınırlama, ve `upstream` bloğu ile iki backend arasında round-robin dağıtım + otomatik failover. Üç ayrı hatayla karşılaştım, hepsi de aynı kök nedene bağlıydı: önceki fazlardan kalan arka plan backend süreçlerinin (Python `http.server`) bir veya birden fazlası sessizce ölmüştü. En net kanıt failover testinde geldi: Instance 1'i `kill` ile kapattığımda, sonraki tüm istekler hiçbir hata vermeden, kesintisiz şekilde Instance 2'ye yönlendi._
+_19. fazdaki sunucu üzerine iki yeni yetenek ekledim: `limit_req_zone`/`limit_req` ile IP bazlı istek sınırlama, ve `upstream` bloğu ile iki backend arasında round-robin dağıtım + otomatik failover. En net kanıt failover testinde geldi: Instance 1'i `kill` ile kapattığımda, sonraki tüm istekler hiçbir hata vermeden, kesintisiz şekilde Instance 2'ye yönlendi._
 
 - **Görevler & Hedefler:**
-  - `limit_req_zone $binary_remote_addr zone=genel:10m rate=5r/s;` `nginx.conf`'un `http` bloğuna eklendi.
-  - `limit_req zone=genel burst=10 nodelay;` `/`, `/users/`, `/computers/` location'larına uygulandı.
-  - 20 art arda istek ile rate limiting test edildi — 11 istek geçti, sonrası 503 ile reddedildi.
-  - İkinci bir `users` backend instance'ı (port 3001) başlatılıp `upstream users_backend { server localhost:3000; server localhost:3001; }` bloğu tanımlandı.
-  - Round-robin dağılımı, isteklere küçük bir bekleme (`sleep 0.3`) eklenerek doğrulandı.
-  - Instance 1 (`kill $(lsof -t -i:3000)`) kapatılıp, trafiğin kesintisiz olarak Instance 2'ye kaydığı (failover) kanıtlandı.
+  - `limit_req_zone`/`limit_req` ile IP bazlı rate limiting yapılandırıldı ve test edildi.
+  - İkinci bir backend instance'ı başlatılıp `upstream` bloğu ile round-robin load balancing kuruldu.
+  - Instance 1 kapatılıp, trafiğin kesintisiz olarak Instance 2'ye kaydığı (failover) kanıtlandı.
   - `least_conn` ve `ip_hash` alternatif load balancing yöntemleri kavramsal olarak incelendi.
 - **Kilometre Taşları & Çıktılar:**
   - 🚦 Rate Limiting & Load Balancing Notları: [20-Rate-Limiting-Load-Balancing](./20-Rate-Limiting-Load-Balancing/readme.md)
 
 ### 🔹 Gün 20 | OpenResty: Token Authentication, PostgreSQL, MySQL, Redis
 
-_Bu fazda Nginx'in ötesine geçip OpenResty ile Lua kodu çalıştıran bir API kurdum. Dört servisi (OpenResty, PostgreSQL, MySQL, Redis) tek bir `docker-compose.yml` ile tanımlayıp `docker compose up -d` ile hepsini birden ayağa kaldırdım. `pgmoon` kütüphanesi Alpine'ın paket yöneticileriyle kurulamadığı için Dockerfile içinde doğrudan GitHub'dan clone edildi — bu adım ilk denemede sorunsuz çalıştı. Token kontrolü (401), PostgreSQL sorgusu (Türkçe karakter dahil), MySQL sorgusu, ve Redis cache mantığı hepsi ilk seferde beklendiği gibi çalıştı._
+_Bu fazda Nginx'in ötesine geçip OpenResty ile Lua kodu çalıştıran bir API kurdum. Dört servisi (OpenResty, PostgreSQL, MySQL, Redis) tek bir `docker-compose.yml` ile tanımlayıp hepsini birden ayağa kaldırdım. Token kontrolü, PostgreSQL/MySQL sorguları ve Redis cache mantığı hepsi ilk seferde beklendiği gibi çalıştı._
 
 - **Görevler & Hedefler:**
-  - `openresty-demo/` proje yapısı oluşturuldu: `docker-compose.yml`, `Dockerfile`, `nginx.conf`, `lua/` (4 dosya), `init/` (2 SQL dosyası).
-  - `Dockerfile` ile `pgmoon` kütüphanesi GitHub'dan clone edilip OpenResty image'ına eklendi.
-  - `nginx.conf`'a `resolver 127.0.0.11 valid=30s;` (Docker'ın iç DNS'i) ve 3 `content_by_lua_file` location'ı tanımlandı.
-  - `auth.lua`, `users.lua` (PostgreSQL/pgmoon), `products.lua` (MySQL/resty.mysql), `cache.lua` (Redis/resty.redis) yazıldı.
+  - `openresty-demo/` proje yapısı oluşturuldu, `pgmoon` kütüphanesi Dockerfile içinde GitHub'dan clone edildi.
+  - `auth.lua`, `users.lua` (PostgreSQL), `products.lua` (MySQL), `cache.lua` (Redis) yazıldı.
   - `sudo docker compose up -d` ile 4 servis build edilip başlatıldı.
-  - Token olmadan `/users` isteği → 401; token ile `/users` → PostgreSQL'den JSON; token ile `/products` → MySQL'den JSON; `/cache`'e iki ardışık istek → Redis cache davranışı doğrulandı.
+  - Token olmadan/ile istekler ve Redis cache davranışı doğrulandı.
 - **Kilometre Taşları & Çıktılar:**
   - 🔐 OpenResty Notları: [21-OpenResty](./21-OpenResty/readme.md)
 
 ### 🔹 Gün 21 | rclone & Amazon S3: Bulut Depolama ve Güvenli Erişim
 
-_Bu fazda gerçek bir AWS hesabı açıp bir S3 bucket'ı (`ege-devops-journal-1`, eu-central-1/Frankfurt) ve IAM kullanıcısı (`rclone-user`) oluşturdum. Kaynak metinde yapılan `location_constraint` hatasını (EU yerine eu-central-1 yazmak gerekiyor) baştan önleyerek doğrudan doğru değeri girdim. En büyük fark performans testlerinde ortaya çıktı: kaynak metinde 1-1.5 saniye süren yükleme testleri, bu WSL2 ortamında 37-42 saniye sürdü — ve `--fast-list` gibi performans parametreleri hiçbir gözlemlenebilir fark yaratmadı, çünkü darboğaz zaten ağ bant genişliğiydi, listeleme overhead'i değildi. Buna karşılık `rclone mount`'un cache özelliği inanılmaz bir fark yarattı: cache'siz bir okuma 2.4 saniye sürerken, cache'li ikinci okuma sadece 0.009 saniye sürdü (~285 kat hızlanma). `rclone serve http` ile private bucket'ı hiç AWS kimlik bilgisi paylaşmadan tarayıcıdan görüntüleyebildim, ve environment variable ile verilen şifrenin log dosyasında gerçekten `XXXX` olarak maskelendiğini doğruladım._
+_Bu fazda gerçek bir AWS hesabı açıp bir S3 bucket'ı ve IAM kullanıcısı oluşturdum. En büyük fark performans testlerinde ortaya çıktı: kaynak metinde saniyeler süren yükleme testleri, WSL2 ortamında çok daha yavaş sürdü. Buna karşılık `rclone mount`'un cache özelliği inanılmaz bir fark yarattı: cache'li ikinci okuma ~285 kat daha hızlıydı._
 
 - **Görevler & Hedefler:**
-  - AWS hesabı açıldı; S3 bucket'ı (`ege-devops-journal-1`) ve `AmazonS3FullAccess` yetkili IAM kullanıcısı (`rclone-user`) oluşturuldu, Access Key alındı.
-  - `unzip` eksikliği yüzünden başarısız olan ilk rclone kurulumu düzeltilip `rclone` kuruldu.
-  - `rclone config` ile S3 remote'u yapılandırıldı (`eu-central-1` region ve location constraint doğru eşleştirildi).
-  - 10×5MB test dosyasıyla varsayılan ve performans parametreli (`--transfers`, `--checkers`, `--buffer-size`, `--fast-list`) yükleme testleri karşılaştırıldı.
-  - `rclone serve http` ile private S3 bucket'ı, AWS kimlik bilgisi paylaşmadan tarayıcıdan görüntülendi.
-  - `rclone mount` ile S3, cache'siz ve cache'li (`--vfs-cache-mode full`) olarak yerel disk gibi bağlandı, okuma hızları karşılaştırıldı.
-  - `RCLONE_USER`/`RCLONE_PASS` environment variable'larıyla auth eklendi, 401/200 davranışı ve log'daki şifre maskelemesi (`XXXX`) doğrulandı.
-  - `--rc` ile remote control açılıp `rclone rc vfs/forget` komutu test edildi.
+  - AWS hesabı açıldı; S3 bucket'ı ve IAM kullanıcısı oluşturuldu, Access Key alındı.
+  - `rclone config` ile S3 remote'u yapılandırıldı.
+  - Performans parametreli yükleme testleri karşılaştırıldı.
+  - `rclone serve http` ile private S3 bucket'ı AWS kimlik bilgisi paylaşmadan tarayıcıdan görüntülendi.
+  - `rclone mount` ile S3, cache'siz ve cache'li olarak yerel disk gibi bağlandı.
 - **Kilometre Taşları & Çıktılar:**
   - 🗄️ rclone & S3 Notları: [22-rclone-S3](./22-rclone-S3/readme.md)
 
 ### 🔹 Gün 22 | Drupal Kurulumu: nginx, PHP-FPM ve PostgreSQL Bir Arada
 
-_Bu fazda Vagrant ile ayağa kaldırdığım Rocky Linux 9 VM'inde nginx + PHP-FPM stack'i üzerine sıfırdan bir Drupal kurulumu yaptım ve art arda gerçek hatalarla debug ederek ilerledim. İlk olarak `sites/default/files` dizini için `www-data` kullanıcısına `chown` yapmaya çalıştım ama hata aldım — `ps aux | grep php-fpm` ile PHP-FPM'in bu sistemde aslında `apache` kullanıcısıyla çalıştığını gördüm (`www-data`, Debian/Ubuntu'ya özgüymüş, RHEL tabanlı Rocky'de yok). Ardından `nginx.conf`'u inceleyip Drupal'ın gerçek kök dizininin (`/var/www/drupal/web`) host'taki proje klasörümden (`C:\Users\ege\drupal-vagrant`) farklı bir path'e karşılık geldiğini fark ettim. Veritabanı adımında PostgreSQL seçtim ve sırasıyla iki kimlik doğrulama sorunuyla karşılaştım: önce SELinux'un `httpd_can_network_connect_db` boolean'ı kapalı olduğu için PHP-FPM'in veritabanına ağ üzerinden bağlanması engelleniyordu, sonra `pg_hba.conf`'un `ident` kullandığını düşünüp incelemeye gittiğimde aslında zaten `scram-sha-256` (şifre tabanlı, `md5`'den daha güvenli) kullanıldığını görüp gereksiz bir değişiklikten kaçındım. En büyük sürpriz sona saklanmıştı: kurulu PostgreSQL sürümü (13.23), Drupal'ın gerektirdiği minimum sürümün (16) altındaydı — Rocky'nin varsayılan AppStream reposu yerine resmi PGDG reposunu ekleyip PostgreSQL 16'ya geçerek çözdüm. Bu fazın en değerli dersi, her hata mesajını yüzeysel okuyup çözümü ezbere uygulamak yerine, `ps aux`, `getenforce`, dosya içerikleri gibi gerçek sistem durumunu her adımda doğrulamaktı._
+_Bu fazda Vagrant ile ayağa kaldırdığım Rocky Linux 9 VM'inde nginx + PHP-FPM stack'i üzerine sıfırdan bir Drupal kurulumu yaptım ve art arda gerçek hatalarla debug ederek ilerledim. İlk olarak dosya sistemi izinlerinde bu sistemde `www-data` değil `apache` kullanıcısının kullanıldığını keşfettim. Veritabanı adımında PostgreSQL seçtim ve SELinux'un veritabanı ağ bağlantısını engellediğini, ardından kurulu PostgreSQL sürümünün (13.23) Drupal'ın gerektirdiği minimum sürümün (16) altında kaldığını buldum — resmi PGDG reposunu ekleyip PostgreSQL 16'ya geçerek çözdüm. Bu fazın en değerli dersi, her hata mesajını yüzeysel okuyup çözümü ezbere uygulamak yerine, `ps aux`, `getenforce`, dosya içerikleri gibi gerçek sistem durumunu her adımda doğrulamaktı._
 
 - **Görevler & Hedefler:**
-  - `sites/default/files` dizini için doğru sahiplik kullanıcısı (`apache`) `ps aux | grep php-fpm` ile tespit edildi, dizin oluşturulup `chown`/`chmod` uygulandı.
-  - `sites/default/default.settings.php`, `settings.php` olarak kopyalanıp geçici `666` izni verildi.
-  - nginx config'i (`root` direktifi) incelenerek Drupal'ın gerçek kök dizini (`/var/www/drupal/web`) doğrulandı.
-  - PostgreSQL üzerinde `drupaluser` kullanıcısı ve `drupaldb` veritabanı oluşturuldu; zaten var olan kullanıcının şifresi `ALTER USER` ile yeniden belirlendi.
-  - `SQLSTATE[08006] Permission denied` hatası, SELinux `httpd_can_network_connect_db` boolean'ının `setsebool -P` ile açılmasıyla çözüldü.
-  - `Ident authentication failed` hatası araştırılırken `pg_hba.conf` incelendi, aslında `scram-sha-256` kullanıldığı görülüp dosyada değişiklik yapılmadı.
-  - `database server version 13.23 is less than the minimum required version 16` hatası üzerine PGDG reposu eklenip Rocky'nin yerleşik postgresql modülü devre dışı bırakılarak PostgreSQL 16 kuruldu, veritabanı kümesi `initdb` ile başlatıldı.
-  - PostgreSQL 16 üzerinde kullanıcı/veritabanı yeniden oluşturuldu, Drupal kurulum sihirbazında "Configure site" adımı (site adı, admin hesabı, bölgesel ayarlar) tamamlandı.
-  - Kurulum sonrası `settings.php` izinleri güvenlik amacıyla `644`'e sıkılaştırıldı.
+  - `sites/default/files` dizini için doğru sahiplik kullanıcısı (`apache`) tespit edilip izinler ayarlandı.
+  - PostgreSQL üzerinde `drupaluser` kullanıcısı ve `drupaldb` veritabanı oluşturuldu.
+  - SELinux `httpd_can_network_connect_db` boolean'ı açılarak veritabanı bağlantı hatası çözüldü.
+  - PostgreSQL 13 → 16 sürüm yükseltmesi PGDG reposu ile yapıldı.
+  - Drupal kurulum sihirbazında "Configure site" adımı tamamlandı.
 - **Kilometre Taşları & Çıktılar:**
   - 🌐 Drupal Kurulum Notları: [23-Drupal-Setup](./23-Drupal-Setup/readme.md)
+
+### 🔹 Gün 23 | Docker: Image, Container, Dockerfile ve Image Optimizasyonu
+
+_Bu fazda Docker'ın temel kavramlarını (image vs container, Dockerfile vs docker-compose.yml) derinleştirdim ve image optimizasyon tekniklerini kavramsal olarak işledim. Volume kalıcılığı ve network isim çözümlemesini kendi WSL ortamımda gerçek testlerle doğruladım: bir PostgreSQL container'ını tamamen silip yeniden oluşturduğumda, volume'daki veri hiç etkilenmedi — `docker compose down` varsayılan olarak volume'ları silmediğini kanıtladım. Ayrıca aynı Compose dosyasındaki ikinci bir container'ın, `postgres` servisine hiçbir IP yazmadan sadece isimle (`pg_isready -h postgres`) ulaşabildiğini gördüm — Docker'ın dahili DNS'i bunu otomatik çözümlüyor. Windows container'ların Linux kernel'li bir sunucuda neden hiçbir şekilde çalışamayacağını (container'ların kendi kernel'ini taşımaması) ve multi-stage build, layer caching sırası, RUN satırlarını birleştirme gibi optimizasyon tekniklerini kavramsal olarak öğrendim._
+
+- **Görevler & Hedefler:**
+  - Image (şablon) ile container (çalışan kopya) arasındaki fark, Dockerfile ile docker-compose.yml arasındaki fark netleştirildi.
+  - Bir PostgreSQL container'ına test verisi eklenip container tamamen silinip yeniden oluşturuldu — volume'daki verinin kalıcı olduğu kanıtlandı.
+  - İkinci bir container (`pgadmin_test`) eklenip `postgres` servisine sadece isimle (`pg_isready -h postgres`) ulaşıldığı doğrulandı — Docker'ın dahili DNS çözümlemesi kanıtlandı.
+  - Windows containers kavramı incelendi (Windows Server Core, farklı kernel ailesi gerektirdiği için Linux VPS'de çalışamaz).
+  - Dockerfile optimizasyon teknikleri (alpine base image, multi-stage build, layer caching sırası, RUN satırlarını birleştirme) kavramsal olarak öğrenildi.
+- **Kilometre Taşları & Çıktılar:**
+  - 🐳 Docker Image/Container Notları: [24-Docker-Image-Container](./24-Docker-Image-Container/readme.md)
 
 ---
 
@@ -372,7 +371,7 @@ _Bu fazda Vagrant ile ayağa kaldırdığım Rocky Linux 9 VM'inde nginx + PHP-F
 - **Guest OS:** Rocky Linux 10.2 (Red Quartz)
 - **VM Kaynakları:** 4096 MB RAM, 4 vCPU, 20 GB Disk
 - **Klavye Düzeni:** Türkçe (TR)
-- **Ek Ortam (Faz 17-22):** WSL2 üzerinde Ubuntu 26.04 LTS (gerçek kiralık sunucu simülasyonu için)
+- **Ek Ortam (Faz 17-24):** WSL2 üzerinde Ubuntu 26.04 LTS (gerçek kiralık sunucu simülasyonu için)
 - **Bulut Kaynakları (Faz 22):** Amazon Web Services (AWS) hesabı, S3 bucket'ı `eu-central-1` (Frankfurt) bölgesinde
 - **Ek Ortam (Faz 23):** Vagrant ile ayağa kaldırılmış Rocky Linux 9 VM'i, nginx + PHP-FPM + PostgreSQL 16 stack'i (Drupal kurulumu için)
 
